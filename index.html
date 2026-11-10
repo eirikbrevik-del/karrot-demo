@@ -1,0 +1,1398 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karrot.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --paper:#fbfcfd; --grid:#d5e2ee; --grid-strong:#bfd2e3; --margin:#f0a5a5;
+  --ink:#2d2e35; --ink-soft:#666a76; --surface:#ffffff; --overlay:rgba(30,32,40,.45);
+  --carrot:#e8711c; --leaf:#3f8a3a; --danger:#c0392b;
+  --pi-gul:#fff27a; --pi-rosa:#ffbdd3; --pi-gronn:#c8f0a6; --pi-bla:#b5e2ff; --pi-oransje:#ffd08f; --pi-lilla:#dfcbff;
+  --note-ink:#2d2e35; --note-filter:none;
+  --hand:'Patrick Hand','Chalkboard SE','Comic Sans MS',cursive;
+  --display:'Gochi Hand','Chalkboard SE','Comic Sans MS',cursive;
+  --wobble:255px 15px 225px 15px/15px 225px 15px 255px;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#1d222b; --grid:#29313e; --grid-strong:#323c4c; --margin:#6d3a45;
+    --ink:#ebe9e2; --ink-soft:#a5a8b2; --surface:#262c37; --overlay:rgba(0,0,0,.6);
+    --carrot:#f48a3a; --leaf:#7cc46d; --danger:#ff7b6b; --note-filter:brightness(.9) saturate(.9);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1d222b; --grid:#29313e; --grid-strong:#323c4c; --margin:#6d3a45;
+  --ink:#ebe9e2; --ink-soft:#a5a8b2; --surface:#262c37; --overlay:rgba(0,0,0,.6);
+  --carrot:#f48a3a; --leaf:#7cc46d; --danger:#ff7b6b; --note-filter:brightness(.9) saturate(.9);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;min-height:100%;font-family:var(--hand);font-size:19px;line-height:1.35;color:var(--ink);
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;background-attachment:fixed;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.margin-line{position:fixed;top:0;bottom:0;left:58px;width:2px;background:var(--margin);opacity:.7;pointer-events:none;z-index:0}
+@media (max-width:700px){.margin-line{left:18px}}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0 0 .3em;line-height:1.1}
+h2{font-size:1.8rem} h3{font-size:1.35rem}
+p{margin:0 0 .7em}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px dashed var(--carrot);outline-offset:3px}
+.muted{color:var(--ink-soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Topbar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:14px;padding:8px 16px 8px 76px;
+  background:var(--paper);border-bottom:2px solid var(--ink)}
+@media (max-width:700px){.topbar{padding-left:30px}}
+.brand{display:flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--display);font-size:1.6rem;cursor:pointer;background:none;border:0;padding:0}
+.brand svg{width:34px;height:34px}
+.roles{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-left:auto;align-items:center}
+.roles::-webkit-scrollbar{display:none}
+.roles .lbl{color:var(--ink-soft);white-space:nowrap;font-size:.95rem}
+.chip{white-space:nowrap;border:2px solid var(--ink);background:var(--surface);border-radius:var(--wobble);padding:2px 12px;cursor:pointer;font-size:1rem}
+.chip[aria-current="page"],.chip.on{background:var(--carrot);color:#fff;border-color:var(--carrot)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--ink);background:var(--surface);border-radius:var(--wobble);
+  padding:6px 16px;cursor:pointer;font-size:1.05rem;text-decoration:none;transition:transform .12s}
+.btn:hover{transform:rotate(-1deg) scale(1.03)}
+.btn.primary{background:var(--carrot);border-color:var(--carrot);color:#fff}
+.btn.green{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.btn.ghost{background:transparent}
+.btn.danger{border-color:var(--danger);color:var(--danger);background:transparent}
+.btn.small{padding:2px 10px;font-size:.95rem}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+main{position:relative;z-index:1;padding:20px 20px 40px 80px;max-width:1400px}
+@media (max-width:700px){main{padding:14px 12px 40px 30px}}
+
+/* Post-it */
+.note{position:relative;background:var(--note);color:var(--note-ink);filter:var(--note-filter);padding:16px 12px 10px;
+  transform:rotate(var(--rot,0deg));box-shadow:2px 4px 0 rgba(0,0,0,.08),0 10px 16px -10px rgba(0,0,0,.35);
+  cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;min-height:96px;display:flex;flex-direction:column;gap:4px;
+  border-bottom-right-radius:18px 6px;transition:transform .15s}
+.note:hover{transform:rotate(0deg) scale(1.03);z-index:2}
+.note .tape{position:absolute;top:-9px;left:50%;width:54px;height:18px;margin-left:-27px;background:rgba(255,255,255,.55);
+  transform:rotate(-3deg);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.note-title{font-size:1.12rem;line-height:1.15}
+.note-meta{font-size:.9rem;opacity:.75}
+.note-foot{margin-top:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.92rem}
+.carrots{font-weight:400;white-space:nowrap}
+.who{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:12px;border:1.5px solid var(--note-ink);font-size:.78rem;background:rgba(255,255,255,.55)}
+.note.done{opacity:.8}
+.note.done .note-title{text-decoration:line-through;text-decoration-thickness:2px}
+.stamp{position:absolute;right:6px;top:8px;transform:rotate(12deg);border:2px solid var(--leaf);color:var(--leaf);padding:0 6px;font-family:var(--display);
+  font-size:.95rem;border-radius:6px;background:rgba(255,255,255,.6)}
+.note.overdue{background:color-mix(in srgb,var(--note) 70%,#c9a24a);border-radius:2px 14px 4px 18px/14px 3px 16px 2px;
+  box-shadow:inset 0 0 18px rgba(120,80,0,.25),2px 4px 0 rgba(0,0,0,.08)}
+.note.overdue::after{content:"Forfalt";position:absolute;left:8px;top:-2px;font-size:.8rem;color:var(--danger);transform:rotate(-6deg)}
+.note.private{outline:2px dashed rgba(0,0,0,.35);outline-offset:-6px}
+.note.blocked .note-title::before{content:"🔒 "}
+.note-s{min-height:0;padding:7px 8px 6px;font-size:.88rem}
+.note-s .note-title{font-size:.92rem}
+.note-s .tape{width:30px;height:10px;top:-5px;margin-left:-15px}
+.note-s .stamp{display:none}
+.note-l{min-height:150px;padding:20px 16px 12px}
+.note-l .note-title{font-size:1.35rem}
+.note.dragging{opacity:.25}
+.ghost{position:fixed;left:0;top:0;pointer-events:none;z-index:100;transform:rotate(4deg) scale(1.05)!important;opacity:.95}
+body.is-dragging{cursor:grabbing}
+[data-drop].hot{outline:3px dashed var(--carrot);outline-offset:4px;background:color-mix(in srgb,var(--carrot) 10%,transparent)}
+
+/* Forside */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:30px;align-items:center;min-height:60vh;padding:10px 0 30px}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+.hero-logo{display:flex;flex-direction:column;align-items:flex-start}
+.hero-logo svg{width:min(300px,60vw);height:auto;color:var(--ink)}
+.wordmark{font-family:var(--display);font-size:clamp(4rem,12vw,8rem);line-height:.9;margin:-10px 0 6px 14px}
+.slogan{font-family:var(--display);font-size:clamp(1.6rem,3.5vw,2.3rem);margin:0 0 10px}
+.lede{font-size:1.2rem;max-width:34em}
+.hero-board{position:relative;min-height:340px}
+.hero-board .note{position:absolute;width:190px}
+.section{margin:44px 0}
+.section > h2{margin-bottom:16px}
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:26px 22px}
+.paper-card{background:var(--surface);border:2px solid var(--ink);border-radius:var(--wobble);padding:18px 20px}
+.price{font-family:var(--display);font-size:3rem;line-height:1}
+.two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+label.field{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;font-size:1rem}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=time],select,textarea{
+  border:2px solid var(--ink);border-radius:8px 3px 9px 4px/4px 9px 3px 8px;background:var(--surface);padding:6px 10px;font-size:1.05rem;width:100%}
+textarea{min-height:80px;resize:vertical}
+.check{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:1rem;cursor:pointer}
+.check input{width:20px;height:20px;margin-top:3px;accent-color:var(--carrot)}
+
+/* Status row */
+.status{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.2fr);gap:16px;align-items:stretch;margin-bottom:14px}
+@media (max-width:760px){.status{grid-template-columns:1fr}}
+.box{background:var(--surface);border:2px solid var(--ink);border-radius:var(--wobble);padding:10px 16px}
+.bar{height:26px;border:2px solid var(--ink);border-radius:14px 6px 12px 5px/6px 12px 5px 14px;overflow:hidden;margin-top:6px;background:var(--paper)}
+.bar > span{display:block;height:100%;background:repeating-linear-gradient(-55deg,var(--carrot) 0 7px,color-mix(in srgb,var(--carrot) 70%,#fff) 7px 10px)}
+.big-num{font-family:var(--display);font-size:2.4rem;line-height:1}
+.qr-box{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:.9rem;text-align:center}
+.qr{background:#fff;padding:6px;border-radius:4px;line-height:0}
+
+/* Calendar */
+.cal-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:6px 0 12px}
+.cal-title{font-family:var(--display);font-size:1.6rem}
+.week{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:10px;overflow-x:auto;padding:12px 4px 8px;scroll-snap-type:x mandatory}
+.day{scroll-snap-align:start;min-height:240px;display:flex;flex-direction:column;gap:14px;padding:6px;border-radius:6px}
+.day-h{background:none;border:0;border-bottom:2px solid var(--ink);text-align:left;padding:0 0 2px;cursor:pointer;font-size:1.05rem}
+.day-h b{font-family:var(--display);font-weight:400;font-size:1.4rem;margin-right:4px}
+.day.today .day-h{color:var(--carrot);border-color:var(--carrot)}
+.span-strip{display:flex;gap:14px;overflow-x:auto;padding:12px 4px 6px;align-items:flex-start}
+.span-strip .note{flex:0 0 170px}
+.strip-label{font-size:.95rem;color:var(--ink-soft)}
+.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:2px solid var(--ink);border-left:2px solid var(--ink)}
+.month .cell{min-height:96px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);padding:3px;display:flex;flex-direction:column;gap:6px;background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.month .cell.other{opacity:.45}
+.month .cell.today{box-shadow:inset 0 0 0 3px var(--carrot)}
+.month .dow{font-size:.9rem;text-align:center;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);padding:2px}
+.cell-n{background:none;border:0;padding:0;text-align:left;cursor:pointer;font-size:.95rem}
+.year{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.ym{padding:8px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.ym h3{font-size:1.25rem;margin:0;border-bottom:2px solid var(--ink)}
+.ym.now h3{color:var(--carrot);border-color:var(--carrot)}
+.dayview{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:26px 22px;padding-top:10px}
+
+/* Team page fit */
+.teampage{display:flex;flex-direction:column}
+@media (min-width:900px) and (min-height:640px){
+  .teampage.fit{height:calc(100dvh - 64px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 30px)}
+  .teampage.fit .cal-body{flex:1;min-height:0;overflow:auto}
+}
+.dock{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;justify-content:center;margin-top:10px;z-index:5}
+.drop{flex:0 1 260px;border:2px dashed var(--ink);border-radius:var(--wobble);background:var(--surface);padding:10px 14px;text-align:center;font-size:1.05rem}
+
+/* Board */
+.board{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:18px;overflow-x:auto;padding-bottom:10px}
+.col{border:2px solid var(--ink);border-radius:var(--wobble);padding:10px 12px 18px;background:color-mix(in srgb,var(--surface) 55%,transparent);min-height:300px}
+.col h3{display:flex;justify-content:space-between;align-items:baseline}
+.col-notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:22px 14px;padding-top:12px}
+.team-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;align-items:center}
+.avatar{display:flex;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:30px;padding:3px 12px 3px 3px;background:var(--surface);white-space:nowrap}
+.avatar .ini{display:grid;place-items:center;min-width:30px;height:30px;padding:0 5px;border-radius:15px;background:var(--pi-gronn);color:var(--note-ink);font-size:.9rem}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px}
+.legend button{display:flex;align-items:center;gap:6px;background:transparent;border:2px solid transparent;border-radius:var(--wobble);padding:0 8px;cursor:pointer;font-size:.95rem}
+.legend button.on{border-color:var(--ink)}
+.legend i{width:16px;height:16px;display:inline-block;background:var(--c);border:1px solid rgba(0,0,0,.25)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.list{display:flex;flex-direction:column;gap:10px}
+.list-row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:2px dotted var(--grid-strong);padding:6px 0}
+.score{display:flex;flex-direction:column;gap:6px}
+.score li{display:flex;justify-content:space-between;gap:12px}
+ol{margin:0;padding-left:1.4em}
+
+/* Dashboard */
+.dash{display:grid;grid-template-columns:minmax(0,3fr) minmax(240px,1fr);gap:22px;align-items:start}
+.dash .week{grid-template-columns:repeat(7,minmax(150px,1fr))}
+.note.taken{opacity:.6;filter:var(--note-filter) grayscale(.55)}
+.note.taken:hover{opacity:1;filter:var(--note-filter)}
+.tag{align-self:flex-start;font-size:.82rem;border:1.5px solid currentColor;border-radius:8px;padding:0 6px;background:rgba(255,255,255,.65)}
+.tag-free{color:#2b6a26}
+/* Bunker */
+.stack{position:relative;display:flex;flex-direction:column;gap:4px}
+.stack-pile{position:relative}
+.stack-pile > .note{position:relative;z-index:1}
+.stack .layer{position:absolute;inset:0;z-index:0;background:var(--note);filter:var(--note-filter) brightness(.92);border-bottom-right-radius:18px 6px;
+  transform:translate(calc(var(--i)*5px),calc(var(--i)*5px)) rotate(calc(var(--i)*1.8deg));box-shadow:1px 2px 4px rgba(0,0,0,.18)}
+.stack-btn{align-self:flex-start;margin:6px 0 0 4px;background:var(--surface);border:1.5px dashed var(--ink);border-radius:var(--wobble);font-size:.85rem;padding:0 8px;cursor:pointer}
+.stack-under{display:flex;flex-direction:column;gap:14px;padding:8px 0 4px 12px;margin-left:6px;border-left:2px dashed var(--grid-strong)}
+.stack-step{display:flex;gap:6px;align-items:flex-start}
+.stack-step > .note{flex:1;min-width:0}
+.partner-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:8px;width:100%}
+.tab-sep{width:2px;align-self:stretch;background:var(--grid-strong);margin:0 4px}
+.push{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:300;background:var(--surface);color:var(--ink);
+  border:2px solid var(--ink);border-radius:16px;padding:10px 16px;box-shadow:0 10px 24px rgba(0,0,0,.25);width:min(420px,92vw);animation:pushIn .3s ease-out}
+.push small{display:block;color:var(--ink-soft);font-size:.8rem}
+@keyframes pushIn{from{transform:translate(-50%,-30px);opacity:0}}
+/* Lappeslektstre */
+.tree-wrap{display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,2fr);gap:20px;align-items:start}
+@media (max-width:900px){.tree-wrap{grid-template-columns:1fr}}
+.pool{max-height:70vh;overflow:auto;display:flex;flex-direction:column;gap:16px;padding:14px 10px 10px}
+.pool .note{max-width:300px}
+ul.tree,ul.tree ul{list-style:none;margin:0;padding:0}
+ul.tree > li{margin:0 0 26px}
+ul.tree ul{margin-left:16px;padding-left:26px;border-left:2px dashed var(--ink-soft)}
+ul.tree ul > li{position:relative;margin:14px 0}
+ul.tree ul > li::before{content:"";position:absolute;left:-26px;top:22px;width:22px;border-top:2px dashed var(--ink-soft)}
+.tnode{display:flex;gap:6px;align-items:flex-start;max-width:340px;border-radius:8px;padding:4px}
+.tnode > .note{flex:1;min-width:0}
+.tnode.dim{opacity:.3}
+.tnode.match{outline:3px solid var(--carrot);outline-offset:2px}
+.tnode .detach{border:0;background:none;cursor:pointer;font-size:1rem;padding:2px;line-height:1}
+.also{font-size:.82rem;color:var(--ink-soft);margin:2px 0 0 6px}
+.mine-item{display:flex;flex-direction:column;gap:12px}
+.mine-item .btn{align-self:flex-start}
+.tag-taken{color:#8a3d0c}
+@media (max-width:1000px){.dash{grid-template-columns:1fr}}
+.dash .big-num{font-size:4.5rem}
+.dash-notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:24px 16px;padding-top:10px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:var(--overlay);z-index:50;display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 14px calc(16px + env(safe-area-inset-bottom,0px))}
+.modal{background:var(--surface);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:26px 26px;
+  border:2px solid var(--ink);border-radius:var(--wobble);width:min(640px,100%);max-height:100%;overflow:auto;padding:22px 22px 18px;position:relative}
+.modal.wide{width:min(820px,100%)}
+.modal .x{position:absolute;right:10px;top:8px;border:0;background:none;font-size:1.6rem;cursor:pointer;line-height:1}
+.modal .detail-note{margin:8px 0 16px}
+.dep{display:flex;gap:6px;align-items:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) rotate(-1deg);background:var(--pi-gul);color:var(--note-ink);
+  padding:10px 18px;z-index:200;box-shadow:2px 6px 14px rgba(0,0,0,.25);font-size:1.1rem;max-width:90vw;animation:pop .25s ease-out}
+@keyframes pop{from{transform:translateX(-50%) translateY(20px) rotate(-1deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.pill{display:inline-block;border:1.5px solid currentColor;border-radius:10px;padding:0 7px;font-size:.85rem}
+hr.pencil{border:0;border-top:2px dashed var(--grid-strong);margin:16px 0}
+/* Nedtelling */
+.cd{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.cd span{display:flex;flex-direction:column;align-items:center;font-size:.85rem;line-height:1.1}
+.cd b{font-family:var(--display);font-weight:400;font-size:2.1rem;line-height:1;min-width:2.1ch;text-align:center}
+.status.big .cd b{font-size:3.8rem}
+.cd-l{font-size:.95rem;margin-top:4px}
+/* QR på lapper */
+.note-qr{background:#fff;padding:4px;line-height:0;align-self:flex-start;margin-top:6px;border-radius:3px}
+.modal .qr-big{display:grid;place-items:center;gap:6px;margin:10px 0;text-align:center}
+/* Varsel */
+.warn{background:#fff3b0;color:#2d2e35;border:2px solid #c0392b;border-radius:var(--wobble);padding:10px 14px;margin:6px 0 12px}
+/* Avdelinger */
+.area-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0}
+.area-row input[type=text]{flex:1 1 140px;width:auto}
+input[type=color]{width:46px;height:38px;padding:2px;border:2px solid var(--ink);border-radius:8px;background:var(--surface);cursor:pointer}
+/* Chat */
+.chat{display:flex;flex-direction:column;gap:12px;max-height:50vh;overflow:auto;padding:8px 6px 12px}
+.msg{max-width:82%;align-self:flex-start;background:var(--pi-bla);color:var(--note-ink);filter:var(--note-filter);padding:6px 12px 8px;transform:rotate(-.4deg);box-shadow:2px 3px 0 rgba(0,0,0,.08)}
+.msg.mine{align-self:flex-end;background:var(--pi-gul);transform:rotate(.4deg)}
+.msg-by{font-size:.85rem;opacity:.7}
+.chat-form{display:flex;gap:8px;margin-top:8px}
+/* Mobilapp */
+.mob{padding-bottom:100px}
+.mob .chat{max-height:calc(100dvh - 330px)}
+.mob .dayview{grid-template-columns:1fr}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--paper);border-top:2px solid var(--ink);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabbar button{position:relative;background:none;border:0;display:flex;flex-direction:column;align-items:center;font-size:.85rem;padding:4px 2px;border-radius:var(--wobble);cursor:pointer}
+.tabbar button.on{background:var(--carrot);color:#fff}
+.tabbar .te{font-size:1.45rem;line-height:1.1}
+.badge{position:absolute;top:0;right:16%;background:var(--danger);color:#fff;border-radius:10px;font-size:.75rem;padding:0 6px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="margin-line" aria-hidden="true"></div>
+<header class="topbar">
+  <button class="brand" data-act="go" data-to="forside" aria-label="Til forsiden"><span id="brandLogo"></span>Karrot.</button>
+  <nav class="roles" aria-label="Se demoen som">
+    <span class="lbl">Se som:</span>
+    <button class="chip" data-act="go" data-to="forside">Forside</button>
+    <button class="chip" data-act="go" data-to="gartner">Gartner</button>
+    <button class="chip" data-act="go" data-to="kollega">Gartnerassistent</button>
+    <button class="chip" data-act="go" data-to="spire">Spire</button>
+    <button class="chip" data-act="go" data-to="dashboard">Dashboard</button>
+  </nav>
+</header>
+<main id="app"></main>
+<div id="modalRoot"></div>
+
+<script>
+/* ---------- Helpers ---------- */
+const SHARE_URL = (/^https?:$/.test(location.protocol) && !/claude/.test(location.hostname)) ? location.href.split('#')[0] : 'https://claude.ai/artifact/U77bQ17urM3wDNH8QvohR1';
+const DAY = 864e5;
+const MND = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+const DAGER = ['man','tir','ons','tor','fre','lør','søn'];
+const DAGNAVN = ['mandag','tirsdag','onsdag','torsdag','fredag','lørdag','søndag'];
+const ROLE_NAMES = {gartner:'Gartner',kollega:'Gartnerassistent',spire:'Spire'};
+const AREA_SEED = [
+  {id:'scene',n:'Scene og teknikk',c:'#ffbdd3'},{id:'mat',n:'Mat og drikke',c:'#ffd08f'},{id:'frivillige',n:'Frivillige',c:'#c8f0a6'},
+  {id:'okonomi',n:'Økonomi',c:'#b5e2ff'},{id:'info',n:'Info og marked',c:'#dfcbff'},{id:'annet',n:'Annet',c:'#fff27a'}
+];
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function uid(){return 'id'+Math.random().toString(36).slice(2,9);}
+function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function pd(s){return new Date(s+'T00:00:00');}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function rel(n){return iso(addDays(today(),n));}
+function addISO(s,n){return iso(addDays(pd(s),n));}
+function mondayOf(d){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;}
+function fmt(s){const d=pd(s);return d.getDate()+'. '+MND[d.getMonth()].slice(0,3)+'.';}
+function weekNo(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dn=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-dn);const y0=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil(((x-y0)/DAY+1)/7);}
+function hashNum(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return Math.abs(h);}
+function initials(n){return (n||'?').trim().split(/\s+/).filter(Boolean).map(p=>p[0]).join('').toUpperCase();}
+function firstName(n){return (n||'').trim().split(/\s+/)[0]||n;}
+function inkFor(hex){const m=/^#?([0-9a-f]{6})$/i.exec(hex||'');if(!m)return '#2d2e35';const n=parseInt(m[1],16);
+  const L=c=>{c/=255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4);};
+  const lum=.2126*L(n>>16&255)+.7152*L(n>>8&255)+.0722*L(n&255);return lum<.3?'#ffffff':'#2d2e35';}
+function timeFmt(ts){const d=new Date(ts),hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  return iso(d)===iso(new Date())?'kl. '+hm:d.getDate()+'. '+MND[d.getMonth()].slice(0,3)+'. kl. '+hm;}
+
+/* ---------- Data ---------- */
+const KEY = 'karrot-demo-v6';
+const S5DESC = 'Finn ett dugnadslag på 10 personer som kan rigge ned dagen etter festivalen, for eksempel et idrettslag, et korps eller en skoleklasse. Avtal oppmøtetid, mat underveis og hva laget får i lagkassa.';
+function seed(){
+  const now=Date.now(), H=36e5;
+  const members = [
+    {id:'m1',name:'Eirik',role:'gartner',phone:'+47 928 50 589',email:'eirik@karrot.no',carrots:14,done:3},
+    {id:'m2',name:'Ingrid Moe',role:'kollega',phone:'',email:'ingrid@eksempel.no',carrots:23,done:6},
+    {id:'m3',name:'Sondre Lie',role:'kollega',phone:'',email:'sondre@eksempel.no',carrots:11,done:3},
+    {id:'m4',name:'Amira Haddad',role:'kollega',phone:'',email:'amira@eksempel.no',carrots:17,done:4},
+    {id:'m5',name:'Jonas Berg',role:'spire',phone:'',email:'jonas@eksempel.no',carrots:0,done:0},
+    {id:'m6',name:'Live Strand',role:'spire',phone:'',email:'live@eksempel.no',carrots:0,done:0}
+  ];
+  const T = o => Object.assign({desc:'',area:'annet',carrots:3,people:1,start:rel(-7),deadline:rel(7),deps:[],mode:'open',leader:null,helpers:[],
+    status:'open',public:true,reversible:false,reverseTitle:'',reverseInfo:'',reverseOf:null,reverseCreated:false,notes:[],doneDate:null},o,{start:o.deadline});
+  const tasks = [
+    T({id:'s1',title:'Booke hovedartist',area:'scene',carrots:8,start:rel(-90),deadline:rel(-30),status:'done',leader:'m1',doneDate:rel(-32),desc:'Bekreftet avtale med signert kontrakt.'}),
+    T({id:'s2',title:'Kontrakt med lydfirma',area:'scene',carrots:5,start:rel(-60),deadline:rel(-14),status:'done',leader:'m2',doneDate:rel(-16),
+      notes:[{byId:'m2',by:'Ingrid Moe',text:'Lydfirmaet ville ha depositum. Avtal det tidlig, det sparte oss for mye stress.',date:rel(-16)}]}),
+    T({id:'s3',title:'Søke skjenkebevilling',area:'okonomi',carrots:5,alert:7,start:rel(-10),deadline:rel(3),status:'claimed',leader:'m3',desc:'Søknad sendes kommunen. Husk plantegning av skjenkeområdet.'}),
+    T({id:'s4',title:'Lage frivilligskjema',area:'frivillige',carrots:3,start:rel(-30),deadline:rel(-12),status:'done',leader:'m4',doneDate:rel(-13)}),
+    T({id:'s5',title:'Rekruttere ett stk dugnadslag (10 stk) til nedrigg',area:'frivillige',carrots:8,people:2,start:rel(-12),deadline:rel(20),deps:['s4'],status:'claimed',leader:'m4',helpers:['m2'],desc:S5DESC}),
+    T({id:'s6',title:'Bestille toaletter',area:'annet',carrots:3,alert:3,start:rel(-3),deadline:rel(2),desc:'Minst 12 toaletter, ett tilpasset rullestol.'}),
+    T({id:'s7',title:'Sette opp scenen',area:'scene',carrots:13,people:4,start:rel(34),deadline:rel(37),deps:['s2'],reversible:true,
+      reverseTitle:'Rigge ned scenen',reverseInfo:'Alle deler tilbake på lageret i hall B. Skruer og bolter i den blå kassa.',desc:'Scenen hentes på lageret i hall B. Tegningen ligger i mappa på kontoret.'}),
+    T({id:'s8',title:'Rigge lys',area:'scene',carrots:8,people:2,start:rel(36),deadline:rel(37),deps:['s7'],reversible:true,reverseTitle:'Rigge ned lys',reverseInfo:'Lamper i flightcasene, kabler kveilet og merket.'}),
+    T({id:'s9',title:'Avtaler med matboder',area:'mat',carrots:5,alert:7,start:rel(-5),deadline:rel(6),status:'claimed',leader:'m2'}),
+    T({id:'s10',title:'Fylle inn varer i Bar 1',area:'mat',carrots:2,start:rel(0),deadline:rel(1),desc:'Fyll kjøleskapene med øl, brus og vann, og sett frem kopper, sugerør og servietter. Varelista henger på lagerdøra. Si ifra til gartneren hvis noe er tomt.'}),
+    T({id:'s11',title:'Gå gjennom budsjettet',area:'okonomi',carrots:5,start:rel(-2),deadline:rel(4),public:false,desc:'Bare for gartneren.'}),
+    T({id:'s12',title:'Trykke plakater',area:'info',carrots:3,start:rel(-14),deadline:rel(-2),desc:'A3, 200 stk. Filen ligger i delt mappe.'}),
+    T({id:'s13',title:'Lage festivalkart',area:'info',carrots:5,start:rel(1),deadline:rel(9)}),
+    T({id:'s14',title:'Vaktliste for frivillige',area:'frivillige',carrots:5,start:rel(-1),deadline:rel(5),deps:['s5'],desc:'Settes opp når alle frivillige er rekruttert.'}),
+    T({id:'s15',title:'Sette opp gjerder',area:'annet',carrots:8,people:3,start:rel(33),deadline:rel(35),mode:'assigned',status:'claimed',leader:'m3',reversible:true,reverseTitle:'Ta ned gjerdene',reverseInfo:'Gjerdene stables på pallene ved port 2.'}),
+    T({id:'s16',title:'Kampanje i sosiale medier',area:'info',carrots:3,people:2,start:rel(-4),deadline:rel(0),status:'claimed',leader:'m2',helpers:['m3']}),
+    T({id:'s17',title:'Skaffe kassa-terminaler',area:'okonomi',carrots:3,start:rel(2),deadline:rel(12)}),
+    T({id:'s18',title:'Lage meny for crew-mat',area:'mat',carrots:3,start:rel(3),deadline:rel(15)})
+  ];
+  return {
+    active:'p1',
+    projects:[{id:'p1',name:'Bryggefesten 2027',festivalDate:rel(38),festivalEnd:rel(40),festivalTime:'18:00',areas:JSON.parse(JSON.stringify(AREA_SEED)),
+      info:'Tre dager med musikk, mat og folk på brygga. Rundt 3 000 besøkende per dag.',tasks}],
+    members,
+    prizes:[{id:'z1',name:'Brus',cost:3,emoji:'🥤'},{id:'z2',name:'Sjokolade',cost:4,emoji:'🍫'},
+            {id:'z4',name:'Festival-t-skjorte',cost:25,emoji:'👕'},{id:'z5',name:'Billett til en venn',cost:40,emoji:'🎟️'},{id:'z6',name:'Gulrot',cost:1,emoji:'🥕'}],
+    notices:[],
+    purchases:[{by:'m2',prize:'Brus',date:rel(-1)}],
+    chat:[
+      {id:'c1',by:'m4',text:'Noen som vet hvor nøkkelen til lageret i hall B er?',ts:now-26*H},
+      {id:'c2',by:'m1',text:'Den henger på kontoret, ved kaffemaskinen ☕',ts:now-25*H},
+      {id:'c3',by:'m3',text:'Skjenkesøknaden er nesten klar. Sender i morgen!',ts:now-3*H},
+      {id:'c4',by:'m4',text:'Vi er oppe i 31 frivillige 🙌',ts:now-.6*H}
+    ],
+    lastRead:{m1:now-2*H,m2:now-4*H,m3:now,m4:now,m5:now-30*H,m6:now},
+    me:{gartner:'m1',kollega:'m2',spire:'m5'},
+    lastRole:'kollega'
+  };
+}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S = load() || seed();
+S.notices=S.notices||[];
+
+const ui = {gTab:'tavle',view:'uke',anchor:today(),day:null,area:null,mTab:'mine',scan:null,openStacks:new Set(),partnerOpen:null,modalCtx:null};
+const mq = matchMedia('(max-width: 700px)');
+const isMobile = () => mq.matches;
+
+const P = () => S.projects.find(p=>p.id===S.active) || S.projects[0];
+const task = id => P().tasks.find(t=>t.id===id);
+const member = id => S.members.find(m=>m.id===id);
+const route = () => (location.hash||'#forside').slice(1) || 'forside';
+const isRole = r => r==='gartner'||r==='kollega'||r==='spire';
+function roleOfRoute(){const r=route();if(isRole(r))return r;if(r.startsWith('lapp-'))return S.lastRole||'kollega';return null;}
+const me = () => member(S.me[roleOfRoute()||S.lastRole||'kollega']);
+function areaOf(t){const as=P().areas;return as.find(a=>a.id===t.area)||as[0]||{id:'',n:'Uten avdeling',c:'#fff27a'};}
+
+function blockers(t){return t.deps.map(task).filter(d=>d&&d.status!=='done');}
+function isBlocked(t){return blockers(t).length>0;}
+function anchorOf(t){let b=t;const seen=new Set();while(b&&b.status==='open'&&isBlocked(b)&&!seen.has(b.id)){seen.add(b.id);b=blockers(b)[0];}return b;}
+function depthOf(t,seen=new Set()){if(seen.has(t.id))return 0;seen.add(t.id);const b=blockers(t)[0];return b&&t.status==='open'?1+depthOf(b,seen):0;}
+function stacks(list){
+  const ids=new Set(list.map(t=>t.id)), under={}, out=[];
+  const parentOf=t=>{if(t.status!=='open'||!isBlocked(t))return null;const a=anchorOf(t);return a&&a!==t&&ids.has(a.id)?a:null;};
+  list.forEach(t=>{const a=parentOf(t);if(a)(under[a.id]=under[a.id]||[]).push(t);});
+  list.forEach(t=>{if(!parentOf(t))out.push({top:t,under:(under[t.id]||[]).sort((x,y)=>depthOf(x)-depthOf(y)||x.deadline.localeCompare(y.deadline))});});
+  return out;
+}
+function isOverdue(t){return t.status!=='done' && pd(t.deadline)<today();}
+function participants(t){return t.leader?[t.leader,...t.helpers]:[];}
+function visible(role){return P().tasks.filter(t=>role==='gartner'||t.public).filter(t=>!ui.area||t.area===ui.area);}
+function progress(){const ts=P().tasks;const tot=ts.reduce((a,t)=>a+t.carrots,0);const done=ts.filter(t=>t.status==='done').reduce((a,t)=>a+t.carrots,0);return {tot,done,pct:tot?Math.round(done/tot*100):0};}
+function dependsOn(a,b,seen=new Set()){const t=task(a);if(!t||seen.has(a))return false;seen.add(a);return t.deps.includes(b)||t.deps.some(d=>dependsOn(d,b,seen));}
+function unread(){const m=me();if(!m)return 0;const lr=S.lastRead[m.id]||0;return S.chat.filter(c=>c.ts>lr&&c.by!==m.id).length;}
+function chatLabel(){const n=unread();return n?`📬 Chat (${n})`:'💬 Chat';}
+
+/* ---------- Actions ---------- */
+function canClaim(t,m){return m && m.role!=='spire' && t.status==='open' && !isBlocked(t) && (t.public||m.role==='gartner');}
+function canJoin(t,m){return m && m.role!=='spire' && t.status==='claimed' && !participants(t).includes(m.id) && participants(t).length<t.people;}
+function isIn(t,m){return m && participants(t).includes(m.id);}
+function blockedMsg(t){const b=blockers(t);return b.length?`Først må «${b[0].title}» gjøres${b.length>1?' (og '+(b.length-1)+' til)':''} 🔒`:'';}
+
+function claim(t,m,quiet){
+  if(t.status==='open'&&isBlocked(t)){if(!quiet)toast(blockedMsg(t));return false;}
+  if(!canClaim(t,m)){if(!quiet)toast('Den lappen kan du ikke ta akkurat nå');return false;}
+  t.status='claimed';t.leader=m.id;t.helpers=[];t.mode='open';save();
+  if(!quiet)toast('Du tok «'+t.title+'». Lykke til! 🥕');return true;
+}
+function join(t,m,quiet){if(!canJoin(t,m))return false;t.helpers.push(m.id);save();if(!quiet)toast('Du er med på «'+t.title+'»');return true;}
+function release(t){t.status='open';t.leader=null;t.helpers=[];t.mode='open';save();toast('Lappen er hengt opp igjen som ledig');}
+function assign(t,mid){
+  const m=member(mid);if(!m||m.role==='spire'){toast('Spirer kan ikke få oppgaver');return;}
+  if(t.status==='done'){toast('Oppgaven er allerede ferdig');return;}
+  t.status='claimed';t.leader=mid;t.helpers=t.helpers.filter(h=>h!==mid);t.mode='assigned';
+  const g=member(S.me.gartner);
+  if(mid!==S.me.gartner)S.notices.push({to:mid,text:`${firstName(g?.name||'Gartneren')} har gitt deg lappen «${t.title}»`,ts:Date.now(),read:false});
+  save();
+  toast('«'+t.title+'» er delegert til '+m.name);
+}
+function complete(t){
+  if(t.status==='done')return;
+  if(isBlocked(t)){toast(blockedMsg(t));return;}
+  if(!t.leader){toast('Noen må ta lappen før den kan bli ferdig');return;}
+  const ps=participants(t);const each=Math.floor(t.carrots/ps.length);const rest=t.carrots-each*ps.length;
+  t.payout={};
+  ps.forEach((id,i)=>{const m=member(id),n=each+(i===0?rest:0);t.payout[id]=n;if(m){m.carrots+=n;m.done+=1;}});
+  t.status='done';t.doneDate=iso(today());
+  let extra='';
+  if(t.reversible&&!t.reverseCreated){createReverse(t);extra=' En nedriggingslapp er hengt opp.';}
+  save();
+  toast(ps.length>1?`Høstet! ${t.carrots} 🥕 delt på ${ps.length}.${extra}`:`Høstet! +${t.carrots} 🥕${extra}`);
+}
+function uncomplete(t){
+  if(t.status!=='done')return;
+  let pay=t.payout;
+  if(!pay){pay={};const ps=participants(t);if(ps.length){const e=Math.floor(t.carrots/ps.length),r=t.carrots-e*ps.length;ps.forEach((id,i)=>pay[id]=e+(i===0?r:0));}}
+  Object.entries(pay).forEach(([id,n])=>{const m=member(id);if(m){m.carrots=Math.max(0,m.carrots-n);m.done=Math.max(0,m.done-1);}});
+  const p=P(), rv=p.tasks.find(x=>x.reverseOf===t.id);
+  if(rv&&rv.status==='open'){p.tasks=p.tasks.filter(x=>x!==rv);p.tasks.forEach(x=>x.deps=x.deps.filter(i=>i!==rv.id));t.reverseCreated=false;}
+  t.status='open';t.leader=null;t.helpers=[];t.mode='open';t.doneDate=null;t.payout=null;save();
+  toast('«'+t.title+'» er ledig igjen, og gulrøttene er trukket tilbake.');
+}
+function createReverse(t){
+  const p=P();
+  const r={id:uid(),title:t.reverseTitle||('Rigge ned: '+t.title),desc:t.reverseInfo||'',area:t.area,carrots:t.carrots,people:t.people,
+    start:addISO(festEnd(p),1),deadline:addISO(festEnd(p),1),deps:[],mode:'open',leader:null,helpers:[],status:'open',public:t.public,
+    reversible:false,reverseTitle:'',reverseInfo:'',reverseOf:t.id,reverseCreated:false,notes:[],doneDate:null};
+  p.tasks.forEach(o=>{if(o.deps.includes(t.id)){const ro=p.tasks.find(x=>x.reverseOf===o.id);if(ro)r.deps.push(ro.id);}});
+  t.deps.forEach(did=>{const rd=p.tasks.find(x=>x.reverseOf===did);if(rd&&!rd.deps.includes(r.id))rd.deps.push(r.id);});
+  p.tasks.push(r);t.reverseCreated=true;
+}
+function buy(z){
+  const m=me();if(!m)return;
+  if(m.carrots<z.cost){toast('Du trenger '+(z.cost-m.carrots)+' gulrøtter til');return;}
+  m.carrots-=z.cost;S.purchases.unshift({by:m.id,prize:z.name,date:iso(today())});save();
+  toast(z.emoji+' Kjøpt! Hent '+z.name.toLowerCase()+' hos gartneren.');
+}
+function festEnd(p){return p.festivalEnd&&p.festivalEnd>=p.festivalDate?p.festivalEnd:addISO(p.festivalDate,2);}
+function duplicateProject(){
+  const p=P();const map={};const src=p.tasks.filter(t=>!t.reverseOf);
+  src.forEach(t=>map[t.id]=uid());
+  const shift=s=>{const d=pd(s);d.setFullYear(d.getFullYear()+1);return iso(d);};
+  const name=/\d{4}/.test(p.name)?p.name.replace(/\d{4}/,y=>String(+y+1)):p.name+' (ny runde)';
+  const np={id:uid(),name,festivalDate:shift(p.festivalDate),festivalEnd:shift(festEnd(p)),festivalTime:p.festivalTime,areas:JSON.parse(JSON.stringify(p.areas)),info:p.info,
+    tasks:src.map(t=>Object.assign(JSON.parse(JSON.stringify(t)),{
+    id:map[t.id],deps:t.deps.filter(d=>map[d]).map(d=>map[d]),leader:null,helpers:[],status:'open',mode:'open',doneDate:null,reverseCreated:false,
+    start:shift(t.start),deadline:shift(t.deadline)}))};
+  S.members.forEach(x=>{x.carrots=0;x.done=0;});
+  S.projects.push(np);S.active=np.id;save();
+  toast('Bunken er snudd! «'+name+'» er klar med blanke lapper, og alle gulrøtter er nullstilt.');
+}
+
+/* ---------- Chat ---------- */
+const REPLIES=['Supert, takk! 🙌','Jeg kan hjelpe til etter lunsj.','Høres bra ut 👍','Noen som vil ta en kaffe ☕?','Jeg tar en titt på det i morgen.','Gulrøtter til alle! 🥕','Er på saken!'];
+let replyTimer=null;
+function markRead(){const m=me();if(m){S.lastRead[m.id]=Date.now();save();}updateChatBtns();}
+function updateChatBtns(){
+  document.querySelectorAll('[data-chatbtn]').forEach(b=>b.textContent=chatLabel());
+  const tb=document.querySelector('.tabbar');if(tb)tb.outerHTML=tabbarHTML();
+}
+function chatHTML(){
+  const m=me();
+  return `<div class="chat" id="chatLog" aria-live="polite">${S.chat.map(c=>{const a=member(c.by),mine=m&&c.by===m.id;
+    return `<div class="msg ${mine?'mine':''}"><div class="msg-by">${mine?'Deg':esc(a?.name||'Tidligere medlem')}, ${timeFmt(c.ts)}</div>${esc(c.text)}</div>`;}).join('')}</div>
+    <form data-form="chat" class="chat-form"><label class="sr" for="chatIn">Melding</label><input id="chatIn" type="text" name="text" autocomplete="off" placeholder="Skriv til teamet …" required><button class="btn primary">Send</button></form>`;
+}
+function afterChat(){const l=document.getElementById('chatLog');if(l){l.scrollTop=l.scrollHeight;markRead();}}
+function refreshChat(){const w=document.querySelector('.chat-wrap');if(w){w.innerHTML=chatHTML();afterChat();const i=document.getElementById('chatIn');if(i&&!isMobile())i.focus();}}
+function simulateReply(fromId){
+  if(replyTimer)return;
+  replyTimer=setTimeout(()=>{
+    replyTimer=null;
+    const others=S.members.filter(x=>x.id!==fromId&&x.role!=='spire'&&!x.pending);if(!others.length)return;
+    const a=others[Math.floor(Math.random()*others.length)];
+    S.chat.push({id:uid(),by:a.id,text:REPLIES[Math.floor(Math.random()*REPLIES.length)],ts:Date.now()});
+    if(S.chat.length>150)S.chat=S.chat.slice(-150);save();
+    if(document.getElementById('chatLog'))refreshChat();
+    else{updateChatBtns();toast('📬 Ny melding fra '+a.name);}
+  },3500+Math.random()*3000);
+}
+
+/* ---------- Logo ---------- */
+function logoSVG(cls=''){
+  return `<svg class="${cls}" viewBox="0 0 120 120" aria-hidden="true">
+  <defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="5" stroke="var(--carrot)" stroke-width="2.4"/></pattern></defs>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M62 33 C76 32 88 42 85 55 C84 60 80 64 75 69 L36 103 C31 107 25 104 27 98 L52 47 C55 40 57 35 62 33 Z" fill="url(#hatch)" stroke-width="3"/>
+    <path d="M60 36 C73 35 84 44 82 55" stroke-width="1.4" opacity=".6"/>
+    <path d="M55 50 l9 5 M48 64 l8 5 M42 78 l7 4 M36 90 l5 3" stroke-width="2.2"/>
+    <path d="M71 36 C68 24 72 13 80 7" stroke="var(--leaf)" stroke-width="3"/>
+    <path d="M76 38 C82 25 93 19 104 19" stroke="var(--leaf)" stroke-width="3"/>
+    <path d="M80 44 C92 37 103 37 112 42" stroke="var(--leaf)" stroke-width="3"/>
+    <path d="M73 37 C76 27 79 21 88 14" stroke="var(--leaf)" stroke-width="1.6" opacity=".7"/>
+  </g></svg>`;
+}
+
+/* ---------- Components ---------- */
+function noteHTML(t,o={}){
+  const size=o.size||'m', drag=o.drag;
+  const a=areaOf(t);
+  const rot=((hashNum(t.id)%7)-3)*(size==='s'?.4:.8);
+  const ps=participants(t).map(id=>member(id)).filter(Boolean);
+  const blk=isBlocked(t)&&t.status!=='done';
+  const cls=['note','note-'+size,t.status==='done'?'done':'',isOverdue(t)?'overdue':'',!t.public?'private':'',blk?'blocked':'',(o.qr||o.tags)&&t.status==='claimed'?'taken':''].join(' ');
+  const label=`${t.title}, ${a.n}, ${t.carrots} gulrøtter, dato ${fmt(t.deadline)}${blk?', venter på en annen oppgave':''}`;
+  const room=t.status==='claimed'&&participants(t).length<t.people;
+  const tag=!(o.qr||o.tags)?'':t.status==='open'?'<span class="tag tag-free">Ledig</span>':t.status==='claimed'?`<span class="tag tag-taken">I gang: ${esc(ps.map(x=>x.name).join(', '))}${room?', plass til flere':''}</span>`:'';
+  const qr=tag+(o.qr&&(t.status==='open'||room)?`<div class="note-qr" data-qr="${size==='l'?100:64}" data-qrtext="${SHARE_URL}#lapp-${t.id}" title="Skann for å lese om lappen"></div>`:'');
+  return `<div class="${cls}" style="--note:${a.c};--note-ink:${inkFor(a.c)};--rot:${rot}deg;${o.style||''}" data-open="${t.id}" ${drag?`data-drag="${t.id}"`:''} tabindex="0" role="button" aria-label="${esc(label)}">
+    <span class="tape"></span>
+    <div class="note-title">${t.reverseOf?'↩ ':''}${esc(t.title)}</div>
+    ${size!=='s'?`<div class="note-meta">${t.status==='done'?'høstet '+fmt(t.doneDate||t.deadline):fmt(t.deadline)}${t.people>1?', '+t.people+' pers.':''}</div>`:''}
+    <div class="note-foot"><span class="carrots">🥕 ${t.carrots}</span>${!t.public?'<span title="Bare synlig for gartneren">🙈</span>':''}${t.reversible?'<span title="Reversibel: får en nedriggingslapp når den er ferdig">⇄</span>':''}${t.alert&&t.status!=='done'?`<span title="E-postvarsel ${t.alert} dager før">⏰</span>`:''}
+      ${ps.map(m=>`<span class="who" title="${esc(m.name)}">${esc(initials(m.name))}</span>`).join('')}</div>
+    ${qr}
+    ${t.status==='done'?'<span class="stamp">Høstet!</span>':''}
+  </div>`;
+}
+function stackHTML(st,o={}){
+  if(!st.under.length)return noteHTML(st.top,o);
+  const open=ui.openStacks.has(st.top.id), n=st.under.length;
+  const layers=st.under.slice(0,3).map((u,i)=>`<span class="layer" style="--note:${areaOf(u).c};--i:${i+1}"></span>`).join('');
+  return `<div class="stack"><div class="stack-pile">${layers}${noteHTML(st.top,o)}</div>
+    <button class="stack-btn" data-act="stack" data-id="${st.top.id}" aria-expanded="${open}">${open?'Skjul bunken':`📚 ${n} ${n===1?'lapp':'lapper'} under`}</button>
+    ${open?`<div class="stack-under">${st.under.map((u,i)=>`<div class="stack-step"><span class="muted" style="font-size:.9rem">${i+2}.</span>${noteHTML(u,{...o,size:o.size==='l'?'m':o.size})}</div>`).join('')}</div>`:''}</div>`;
+}
+function target(){return new Date(P().festivalDate+'T'+(P().festivalTime||'12:00')+':00');}
+function cdHTML(){
+  const p=P(), ms=target()-Date.now();
+  if(ms<=0)return `<div class="big-num">🎉</div><div class="cd-l">${esc(p.name)} er i gang!</div>`;
+  const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),mi=Math.floor(s%3600/60),se=s%60;
+  const c=(v,l,pad)=>`<span><b>${pad?String(v).padStart(2,'0'):v}</b>${l}</span>`;
+  return `<div class="cd" role="timer" aria-label="${d} dager, ${h} timer, ${mi} minutter igjen">${c(d,d===1?'dag':'dager')}${c(h,h===1?'time':'timer',1)}${c(mi,'min',1)}${c(se,'sek',1)}</div>
+    <div class="cd-l">til ${esc(p.name)} åpner ${fmt(p.festivalDate)} kl. ${esc(p.festivalTime||'12:00')}</div>`;
+}
+function statusHTML(big=false){
+  const pr=progress();
+  return `<div class="status ${big?'big':''}">
+    <div class="box prog"><div class="row" style="justify-content:space-between"><span>${pr.done} av ${pr.tot} gulrøtter høstet</span><b class="big-num" style="font-size:${big?'3rem':'1.8rem'}">${pr.pct} %</b></div>
+      <div class="bar" role="progressbar" aria-valuenow="${pr.pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pr.pct}%"></span></div></div>
+    <div class="box" data-countdown>${cdHTML()}</div>
+  </div>`;
+}
+function legendHTML(){
+  return `<div class="legend" role="group" aria-label="Filtrer på avdeling">${P().areas.map(a=>
+    `<button class="${ui.area===a.id?'on':''}" data-act="area" data-area="${a.id}" aria-pressed="${ui.area===a.id}"><i style="--c:${a.c}"></i>${esc(a.n)}</button>`).join('')}
+    ${ui.area?'<button data-act="area" data-area="">Vis alle</button>':''}</div>`;
+}
+function menuButtons(role){
+  const b=(tab,txt,extra='')=>`<button class="btn small" data-act="menu" data-tab="${tab}" ${extra}>${txt}</button>`;
+  if(role==='spire')return b('profil','Profil')+b('chat',chatLabel(),'data-chatbtn');
+  if(role==='kollega')return b('gulrot','Gulrøtter og premier')+b('profil','Profil')+b('chat',chatLabel(),'data-chatbtn');
+  return b('mine','Mine lapper')+b('gulrot','Gulrøtter og premier')+b('profil','Profil')+b('chat',chatLabel(),'data-chatbtn');
+}
+
+/* ---------- Calendar ---------- */
+function calendarHTML(role){
+  const dash=role==='dashboard', spire=role==='spire', own=role==='kollega';
+  const drag=role==='gartner';
+  const vis=own?P().tasks.filter(t=>isIn(t,me())&&t.status!=='done').filter(t=>!ui.area||t.area===ui.area)
+    :visible(dash?'spire':role).filter(t=>!dash||!ui.dashFilter||(ui.dashFilter==='ledig'?t.status==='open':t.status==='claimed'));
+  const st=stacks(vis);
+  const no={drag,qr:dash,tags:spire};
+  if(spire)ui.view='dag';
+  if(dash&&(ui.view==='maaned'||ui.view==='aar'))ui.view='uke';
+  const views=spire?[]:dash?[['uke','Uke'],['dag','Dag']]:[['uke','Uke'],['maaned','Måned'],['aar','År']];
+  const tabs=`<div class="row" role="group" aria-label="Visning">${views.map(([k,n])=>
+    `<button class="chip ${ui.view===k||(!dash&&k==='uke'&&ui.view==='dag')?'on':''}" data-act="view" data-v="${k}">${n}</button>`).join('')}</div>`;
+  let title='',body='';
+  const a=ui.anchor, t0=today();
+  if(ui.view==='dag'){
+    if(!ui.day)ui.day=iso(t0);
+    const d=pd(ui.day);
+    const list=st.filter(x=>x.top.deadline===ui.day);
+    title=`${DAGNAVN[(d.getDay()+6)%7]} ${d.getDate()}. ${MND[d.getMonth()]}`;
+    body=`<div class="row">${dash||spire?'':'<button class="btn small" data-act="view" data-v="uke">← Tilbake til uka</button>'}<span class="muted">${list.length} ${list.length===1?'lapp':'lapper'} denne dagen</span></div>
+      <div class="dayview">${list.map(x=>stackHTML(x,{...no,size:'l'})).join('')||'<p class="muted">Ingen lapper denne dagen. Ta en pust i bakken.</p>'}</div>`;
+  } else if(ui.view==='maaned'){
+    const first=new Date(a.getFullYear(),a.getMonth(),1), start=mondayOf(first);
+    title=`${MND[a.getMonth()]} ${a.getFullYear()}`;
+    let cells=DAGER.map(d=>`<div class="dow">${d}</div>`).join('');
+    const last=new Date(a.getFullYear(),a.getMonth()+1,0), end=addDays(mondayOf(last),6);
+    for(let d=new Date(start);d<=end;d=addDays(d,1)){
+      const s=iso(d);const ts=st.filter(x=>x.top.deadline===s);
+      cells+=`<div class="cell ${d.getMonth()!==a.getMonth()?'other':''} ${s===iso(t0)?'today':''}">
+        <button class="cell-n" data-act="day" data-date="${s}">${d.getDate()}</button>${ts.map(x=>stackHTML(x,{...no,size:'s'})).join('')}</div>`;
+    }
+    body=`<div class="month">${cells}</div>`;
+  } else if(ui.view==='aar'){
+    const y=a.getFullYear();title=String(y);
+    body=`<div class="year">${MND.map((m,i)=>{
+      const ts=st.filter(x=>{const d=pd(x.top.deadline);return d.getFullYear()===y&&d.getMonth()===i;}).sort((x,z)=>x.top.deadline.localeCompare(z.top.deadline));
+      return `<div class="ym ${y===t0.getFullYear()&&i===t0.getMonth()?'now':''}"><h3><button class="cell-n" style="font-size:inherit;font-family:inherit" data-act="month" data-m="${i}">${m}</button></h3>
+        ${ts.slice(0,5).map(x=>stackHTML(x,{...no,size:'s'})).join('')}${ts.length>5?`<button class="btn small ghost" data-act="month" data-m="${i}">+${ts.length-5} til</button>`:''}${ts.length?'':'<span class="muted">Ingen lapper</span>'}</div>`;
+    }).join('')}</div>`;
+  } else {
+    const mon=mondayOf(a), sun=addDays(mon,6);
+    title=`Uke ${weekNo(mon)}: ${mon.getDate()}. ${MND[mon.getMonth()].slice(0,3)}. til ${sun.getDate()}. ${MND[sun.getMonth()].slice(0,3)}.`;
+    const strip=st.filter(x=>isOverdue(x.top)&&pd(x.top.deadline)<mon);
+    body=`${strip.length?`<div class="strip-label">Har passert datoen uten å bli gjort</div><div class="span-strip">${strip.map(x=>stackHTML(x,no)).join('')}</div>`:''}
+      <div class="week">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(mon,i),s=iso(d);
+        const ts=st.filter(x=>x.top.deadline===s);
+        return `<div class="day ${s===iso(t0)?'today':''}"><button class="day-h" data-act="day" data-date="${s}" aria-label="Åpne ${DAGNAVN[i]} ${d.getDate()}."><b>${d.getDate()}.</b>${DAGER[i]}</button>
+          ${ts.map(x=>stackHTML(x,no)).join('')}</div>`;}).join('')}</div>`;
+  }
+  return `<div class="cal-head">${tabs}${dash?`<div class="row" role="group" aria-label="Vis lapper">${[['','Alle lapper'],['ledig','Bare ledige'],['tatt','Bare lapper som er tatt']].map(([k,n])=>`<button class="chip ${(ui.dashFilter||'')===k?'on':''}" data-act="dashFilter" data-f="${k}">${n}</button>`).join('')}</div>`:''}
+    <div class="row"><button class="btn small" data-act="nav" data-dir="-1" aria-label="Forrige">‹</button><span class="cal-title">${esc(title)}</span><button class="btn small" data-act="nav" data-dir="1" aria-label="Neste">›</button><button class="btn small ghost" data-act="today">I dag</button></div></div>
+    ${legendHTML()}<div class="cal-body">${body}</div>`;
+}
+
+/* ---------- Pages ---------- */
+function pageForside(){
+  const pick=id=>P().tasks.find(t=>t.id===id);
+  const heroNotes=[['s10',8,10],['s7',52,0],['s5',18,46],['s13',60,52]].map(([id,l,tp])=>{const t=pick(id);return t?noteHTML(t,{style:'left:'+l+'%;top:'+tp+'%'}):''}).join('');
+  return `
+  <section class="hero">
+    <div class="hero-logo">${logoSVG()}<div class="wordmark">Karrot.</div>
+      <p class="slogan">Gjør jobben. Få gulrota.</p>
+      <p class="lede">Å lage festival skal være gøy. For hvis du ikke har det gøy mens du lager festival, er sjansen stor for at festivalen blir deretter.</p>
+      <p class="lede">Derfor har vi utviklet Karrot – et lekent og intuitivt prosjektstyringsverktøy som gjør det enklere, mer oversiktlig og ikke minst morsommere å lage festival.</p>
+      <p class="lede">Med Karrot kan du enkelt planlegge årshjulet, delegere oppgaver og holde oversikt over fremdriften. Alt sammen pakket inn i et akkurat passe «corny» gartnerunivers, der gartnere, gartnerassistenter og spirer samarbeider om å få festivalen til å blomstre.</p>
+      <p class="lede">Og fordi vi mener at innsats fortjener belønning, kan alle samle gulrøtter underveis. Jo flere oppgaver du fullfører, desto flere gulrøtter høster du.</p>
+      <p class="lede"><b>Karrot – fordi gode festivaler ikke vokser av seg selv.</b></p>
+      <div class="row"><button class="btn primary" data-act="login">Kom i gang med Google</button><button class="btn" data-act="go" data-to="kollega">Se demoen</button><button class="btn" data-act="go" data-to="tips">Tips og triks for best bruk</button></div>
+    </div>
+    <div class="hero-board" aria-hidden="true">${heroNotes}</div>
+  </section>
+  <section class="section"><h2>Slik fungerer Karrot</h2>
+    <div class="notes-grid">
+      ${[['pi-gul','Gartneren','Sjefen sjøl, eller gartneren i dette tilfellet, setter opp prosjektet, oppretter arbeidsoppgaver, setter tidsfrister, delegerer og honorerer i form av gulrøtter.'],
+         ['pi-gronn','Gartnerassistentene','Teamet, eller gartnerassistentene som vi har valgt å kalle dem, tar på seg arbeidsoppgaver. Disse velges ut fra egne kvalifikasjoner eller motivasjon. Når jobben er gjort, får de gulrøtter i premie.'],
+         ['pi-bla','Spirene','Spirene er de frivillige. Disse kan se og lese alle arbeidsoppgaver, men ikke gjøre endringer.'],
+         ['pi-oransje','Gulrøttene','Når en oppgave fullføres, får gartnerassistentene gulrøtter. Disse kan byttes inn i varer fra premiekjøleskapet. Typisk kan dette være en sjokolade, en brus eller kanskje også merch?']]
+        .map(([c,h,p],i)=>`<div class="note" style="--note:var(--${c});--rot:${[-1.5,1,-.5,1.5][i]}deg;cursor:default"><span class="tape"></span><h3>${h}</h3><p style="margin:0">${p}</p></div>`).join('')}
+    </div>
+    <p style="margin-top:22px;max-width:40em">Henger dashboardet på en skjerm på kontoret, har hver lapp sin egen QR-kode. Skann den med mobilen for å lese om oppgaven og ta den. Etter festivalen snur du bunken: alle oppgavene blir med til neste år som blanke lapper, sammen med erfaringsnotatene fra i år.</p>
+  </section>
+  <section class="section two-col">
+    <div class="paper-card"><h2>Pris</h2><div class="price">49 kr</div><p>per bruker per måned. Tre måneders oppsigelse.</p>
+      <p>Spirer er gratis.</p>
+      <p class="pill" style="color:var(--leaf)">Gratis mens vi er i beta</p></div>
+    <div class="paper-card"><h2>Legg Karrot på hjemskjermen</h2><p>Karrot fungerer i nettleseren på laptopen, og kan legges på hjemskjermen på mobilen som en app.</p>
+      <button class="btn" data-act="install">Slik gjør du det</button></div>
+  </section>
+  <section class="section two-col">
+    <div class="paper-card"><h2>Kontakt</h2>
+      <p>E-post: <a href="mailto:post@karrot.no">post@karrot.no</a><br>Telefon: <a href="tel:+4792850589">+47 928 50 589</a></p></div>
+    <form class="paper-card" data-form="feedback"><h2>Ris, ros eller en idé?</h2>
+      <label class="field">Hva tenker du?<textarea name="msg" required placeholder="Det hadde vært fint om Karrot kunne …"></textarea></label>
+      <label class="field">E-posten din (valgfritt)<input type="email" name="mail"></label>
+      <button class="btn primary">Send innspill</button></form>
+  </section>
+  <p class="muted" style="font-size:.95rem">Dette er en demo med oppdiktede data. Endringer lagres bare i denne nettleseren. <button class="btn small ghost" data-act="reset">Nullstill demoen</button></p>`;
+}
+
+function pageTips(){
+  const cols=['pi-gul','pi-gronn','pi-bla','pi-rosa','pi-oransje','pi-lilla'];
+  const rots=[-1.2,.9,-.4,1.3,-.8,.5,-1];
+  const tipNotes=(list)=>`<div class="notes-grid" style="margin-top:18px">${list.map((x,i)=>
+    `<div class="note" style="--note:var(--${cols[i%cols.length]});--rot:${rots[i%rots.length]}deg;cursor:default"><span class="tape"></span>
+      <div class="big-num" style="font-size:2rem">${i+1}</div><p style="margin:0">${x}</p></div>`).join('')}</div>`;
+  const anbefaler=[
+    'Velg en prosjektleder, festivalsjef eller gartner. Denne skal sette seg inn i alt! «Hvor er», «hva er» og «hvordan er» er alle spørsmål gartneren skal kunne svare på. Gartneren lager også alle lappene, men skal selv ikke utføre en eneste en, bortsett fra i planleggingsfasen da.',
+    'Gartneren kan i enkelte tilfeller velge en gartner nummer to. Dette hvis oppgavene blir mange og kompliserte.',
+    'Under gjennomføringen, særlig i oppriggsuka, er gartnerens jobb å sitte på kontoret. PC-en er koblet til en projektor som viser dashboardet. Når gartnerassistentene kommer til kontoret for å skanne lappene, er gartneren tilgjengelig for å svare på spørsmål.',
+    'Gartneren leder også morgenmøtene. Her går hen gjennom dagens arbeidsoppgaver. Har noen av gartnerassistentene spørsmål, er det nå de skal stilles. Oppgavene oppdateres deretter.',
+    'Møtes dere kanskje også ved lunsj- eller middagstider? Ta en kjapp tur innom dashboardet da også, og oppdater oppgavene.',
+    'Og ja, gartneren har kontroll på premiekjøleskapet. Når en gartnerassistent bruker opptjente gulrøtter, kan premien hentes hos gartneren.',
+    'Kjør prosessen helt til festivalstart. Dere blir garantert ferdige i tide, og dere kommer garantert til å få mer fritid.'];
+  const andre=[
+    'Det er viktig at absolutt alle bruker appen. Ellers blir ting og tang glemt. Ta en gjennomgang med hele teamet.',
+    'Når en oppgave fullføres, er det viktig at den som har gjort den noterer ned eventuelle endringer, eller ting som er lurt å huske til neste år. Notatene lagres og blir med når du snur bunken og starter planleggingen av ny festival. Ja, det finnes faktisk en egen snu bunken-knapp.',
+    'Lag rutiner for bruk av chatten. Ikke spam, men bruk den gjerne til å si fra om at det er lunsj om en halvtime, eller at du trenger hjelp med oppgaven din.',
+    'Når man lager festival, trenger man ofte en del verktøy og lignende. Samle alt på ett sted, så slipper du som gartner å få spørsmålene «Har noen sett en drill?» og «Har vi noe mer gaffa noe sted?» litt for mange ganger.'];
+  return `<div style="max-width:900px">
+    <button class="btn small ghost" data-act="go" data-to="forside">← Tilbake til forsiden</button>
+    <h2 style="font-size:2.6rem;margin-top:18px">Tips og triks for best bruk</h2>
+    <div class="lede" style="max-width:36em">
+      <p>Ok. På skolen lærte vi en gang om scrum. Scrum var visstnok et smidig rammeverk for å løse komplekse problemer, eller noe i den duren. Uansett. Metodikken fungerte visstnok bra for små bedrifter med et felles, konkret mål. Kunne vi bruke det i festivalplanlegging? Nei, var svaret.</p>
+      <p>I snart åtte år har vi brukt Karrot i fysisk format, på ulike mindre festivaler. Én projektor på en vegg, og ekte post-it-lapper som vi klistrer på veggen. Velg lapp og start arbeidet! Mye var likt som i scrum, men med tiden har vi også endret mye, og kommet fram til en slags subjektiv fasit.</p>
+      <p>Problemet er bare at lappene ofte forsvinner. Og hva var det egentlig som stod på den lappen i fjor?</p>
+      <p><b>Nå har vi derfor utviklet Karrot.</b></p>
+    </div>
+    <section class="section"><div class="paper-card" style="max-width:36em"><h2>Målet</h2>
+      <p style="margin:0">Målet med Karrot er å skape en felles hub der hele festivalteamet møtes, diskuterer, sosialiserer og gjør arbeidet gøy. Målet er også å skape eierskap til produktet. Karrot fungerer godt i prosjekter der strukturen er flat eller konkav, og der sluttproduktet er den festivalen alle har lyst til å gå på.</p></div></section>
+    <section class="section"><h2>Vi anbefaler derfor</h2>${tipNotes(anbefaler)}</section>
+    <section class="section"><h2>Andre ting å tenke på</h2>${tipNotes(andre)}</section>
+    <div class="row"><button class="btn primary" data-act="login">Kom i gang med Google</button><button class="btn" data-act="go" data-to="forside">Tilbake til forsiden</button></div>
+  </div>`;
+}
+
+function pageTeam(role){
+  const m=me();
+  const head=`<div class="row" style="justify-content:space-between;margin-bottom:8px">
+    <h2 style="margin:0">${role==='spire'?'Hei, '+esc(firstName(m.name))+'! Slik går det':'Hei, '+esc(firstName(m.name))+'!'}</h2>
+    <div class="row">${role!=='spire'?`<span class="pill">🥕 ${m.carrots}</span>`:'<span class="muted">Du kan lese om oppgavene, men ikke ta dem.</span>'}${menuButtons(role)}</div></div>`;
+  if(role==='spire')return `<div class="teampage fit">${head}${statusHTML()}${calendarHTML('spire')}</div>`;
+  const mine=P().tasks.filter(t=>isIn(t,m)&&t.status!=='done');
+  const done=P().tasks.filter(t=>isIn(t,m)&&t.status==='done').sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
+  const empty=mine.length?'':`<div class="warn" style="border-color:var(--leaf)"><b>Du har ingen lapper ennå.</b> Gå til dashboardet og skann QR-koden på en ledig lapp for å ta den. Lappen dukker da opp her, i kalenderen.</div>`;
+  const harvested=`<div class="paper-card" style="margin-top:14px;padding:10px 16px"><h3 style="margin:0">Høstet</h3>${done.length?`<div class="span-strip">${done.map(t=>noteHTML(t,{size:'s'})).join('')}</div>`:'<p class="muted" style="margin:4px 0 0">Ingen høstede lapper ennå.</p>'}</div>`;
+  return `<div class="teampage ${ui.view==='maaned'||ui.view==='aar'?'':'fit'}">${head}${alertsHTML()}${empty}${statusHTML()}${calendarHTML(role)}${harvested}</div>`;
+}
+
+function tabbarHTML(){
+  const n=unread();
+  const all=[['mine','📝','Mine lapper'],['gulrot','🥕','Gulrøtter'],['profil','👤','Profil'],['chat',n?'📬':'💬','Chat']];
+  const tabs=roleOfRoute()==='spire'?[['idag','📅','Lappene'],['profil','👤','Profil'],['chat',n?'📬':'💬','Chat']]:all;
+  return `<nav class="tabbar" aria-label="Meny" style="grid-template-columns:repeat(${tabs.length},1fr)">${tabs.map(([k,e,l])=>`<button class="${ui.mTab===k?'on':''}" data-act="mtab" data-tab="${k}" aria-current="${ui.mTab===k?'page':'false'}"><span class="te" aria-hidden="true">${e}</span>${l}${k==='chat'&&n?`<span class="badge" aria-label="${n} uleste">${n}</span>`:''}</button>`).join('')}</nav>`;
+}
+function pageMobile(role){
+  const m=me();
+  if(role==='spire'&&(ui.mTab==='mine'||ui.mTab==='gulrot'))ui.mTab='idag';
+  if(role!=='spire'&&ui.mTab==='idag')ui.mTab='mine';
+  return `<div class="mob"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0">Hei, ${esc(firstName(m.name))}!</h2>${role!=='spire'?`<span class="pill">🥕 ${m.carrots}</span>`:''}</div>
+    ${menuBody(ui.mTab,true)}</div>${tabbarHTML()}`;
+}
+function menuBody(tab,mobile){
+  const m=me();
+  if(tab==='profil'){
+    return `<form data-form="profile"><label class="field">Navn<input type="text" name="name" value="${esc(m.name)}" required></label>
+      <label class="field">Telefon<input type="tel" name="phone" value="${esc(m.phone)}"></label>
+      <label class="field">E-post<input type="email" name="email" value="${esc(m.email)}"></label><button class="btn primary">Lagre profilen</button></form>`;
+  }
+  if(tab==='chat')return `<h3>Teamchat</h3><div class="chat-wrap">${chatHTML()}</div>`;
+  if(tab==='idag')return calendarHTML('spire');
+  if(tab==='gulrot'){
+    const top=S.members.filter(x=>x.role!=='spire').sort((a,b)=>b.carrots-a.carrots).slice(0,3);
+    return `<div class="two-col"><div><div class="big-num">🥕 ${m.carrots}</div><p>gulrøtter å bruke</p>
+        ${P().showTop!==false?`<h3>Topp tre</h3><ol class="score">${top.map(x=>`<li><span>${esc(x.name)}</span><span>🥕 ${x.carrots}</span></li>`).join('')}</ol>`:''}</div>
+      <div><h3>Premiekjøleskapet</h3><div class="list">${S.prizes.map(z=>`<div class="list-row"><span>${z.emoji} ${esc(z.name)}</span>
+        <button class="btn small ${m.carrots>=z.cost?'primary':''}" data-act="buy" data-id="${z.id}" ${m.carrots<z.cost?'disabled':''}>Kjøp for ${z.cost} 🥕</button></div>`).join('')}</div>
+        <p class="muted" style="font-size:.95rem">Når du har kjøpt, henter du premien hos gartneren.</p></div></div>`;
+  }
+  if(m.role==='spire')return `<p>Som spire har du ingen lapper selv, men du kan lese om alle oppgavene på dashboardet og prate med teamet i chatten.</p>`;
+  const mine=P().tasks.filter(t=>participants(t).includes(m.id)&&t.status!=='done').sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const done=P().tasks.filter(t=>participants(t).includes(m.id)&&t.status==='done');
+  return `${alertsHTML()}${mine.length?`<div class="dayview">${mine.map(t=>`<div class="mine-item">${noteHTML(t,{size:mobile?'l':'m'})}<div class="row">${isBlocked(t)?`<span class="pill" style="color:var(--danger)">🔒 Venter på «${esc(blockers(t)[0].title)}»</span>`:`<button class="btn small green" data-act="finish" data-id="${t.id}">Ferdig! Høst ${t.carrots} 🥕</button>`}<button class="btn small" data-act="giveUp" data-id="${t.id}">✋ Gi slipp på lappen</button>${partnerBtnHTML(t,'small')}</div>${ui.partnerOpen===t.id?partnerFormHTML(t):''}</div>`).join('')}</div>`:`<p>Du har ingen lapper akkurat nå.</p>`}
+    ${mobile?'<p class="muted" style="margin-top:20px">Vil du ha flere? Skann QR-koden på en ledig lapp på dashboardet for å lese om den og ta den.</p>':''}
+    ${done.length?`<p class="muted" style="margin-top:12px">Høstet så langt: ${done.map(t=>esc(t.title)).join(', ')}</p>`:''}`;
+}
+
+function partnerBtnHTML(t,size){
+  if(t.people<=1)return '';
+  if(participants(t).length>=t.people)return `<span class="muted" style="font-size:.95rem">Fullt lag (${participants(t).length} av ${t.people})</span>`;
+  return `<button class="btn ${size||''}" data-act="partner" data-id="${t.id}" aria-expanded="${ui.partnerOpen===t.id}">🤝 Legg til samarbeidspartner</button>`;
+}
+function partnerFormHTML(t){
+  const ps=participants(t), left=t.people-ps.length;
+  const cands=S.members.filter(x=>x.role!=='spire'&&!x.pending&&!ps.includes(x.id));
+  if(!cands.length)return '<p class="muted">Det er ingen andre i teamet å legge til.</p>';
+  return `<form data-form="partner" data-id="${t.id}" class="partner-form"><label class="field" style="margin:0;flex:1 1 220px">Velg hvem du vil samarbeide med
+    <select name="mid" required><option value="">Velg …</option>${cands.map(x=>`<option value="${x.id}">${esc(x.name)} (${ROLE_NAMES[x.role]})</option>`).join('')}</select></label>
+    <button class="btn small primary">Legg til</button><span class="muted" style="font-size:.9rem">Plass til ${left} til. ${t.carrots} 🥕 deles likt på alle.</span></form>`;
+}
+function alertsHTML(){
+  const m=me();if(!m||m.role==='spire')return '';
+  const t0=today();
+  const list=P().tasks.filter(t=>t.alert&&t.status==='claimed'&&participants(t).includes(m.id)).map(t=>({t,days:Math.round((pd(t.deadline)-t0)/DAY)})).filter(x=>x.days<=x.t.alert).sort((a,b)=>a.days-b.days);
+  if(!list.length)return '';
+  return `<div class="warn" style="border-color:var(--carrot)"><b>📧 Husk!</b>
+    <div class="list" style="margin-top:6px">${list.map(({t,days})=>`<div class="list-row"><span>⏰ «${esc(t.title)}» skal gjøres ${days<0?'og datoen har passert':days===0?'i dag':days===1?'i morgen':'om '+days+' dager'}</span><button class="btn small" data-act="openTask" data-id="${t.id}">Åpne</button></div>`).join('')}</div>
+    <div style="font-size:.9rem;margin-top:6px">I den ferdige versjonen kommer dette som e-post til ${esc(m.email||'deg')}.</div></div>`;
+}
+
+function treeHTML(){
+  const all=P().tasks.filter(t=>!t.reverseOf);
+  const ids=new Set(all.map(t=>t.id));
+  const parentId=t=>t.deps.find(d=>ids.has(d))||null;
+  const kidsOf=id=>all.filter(k=>parentId(k)===id).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const hasKids=new Set(all.map(parentId).filter(Boolean));
+  const roots=all.filter(t=>!parentId(t)&&hasKids.has(t.id)).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const loose=all.filter(t=>!parentId(t)&&!hasKids.has(t.id)&&t.status!=='done').filter(t=>!ui.area||t.area===ui.area).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const q=(ui.treeQ||'').toLowerCase();
+  const node=(t,seen)=>{
+    if(seen.has(t.id))return '';seen.add(t.id);
+    const kids=kidsOf(t.id), extra=t.deps.filter(d=>d!==parentId(t)).map(task).filter(Boolean);
+    const hit=q&&t.title.toLowerCase().includes(q);
+    return `<li><div class="tnode ${q?(hit?'match':'dim'):''}" data-drop="dep:${t.id}" data-tree-title="${esc(t.title.toLowerCase())}">${noteHTML(t,{size:'s',drag:true})}
+      ${parentId(t)?`<button class="detach" data-act="detach" data-id="${t.id}" title="Løsne fra lappen over" aria-label="Løsne «${esc(t.title)}» fra lappen over">✂️</button>`:''}</div>
+      ${extra.length?`<div class="also">Venter også på: ${extra.map(x=>esc(x.title)).join(', ')}</div>`:''}
+      ${kids.length?`<ul>${kids.map(k=>node(k,seen)).join('')}</ul>`:''}</li>`;
+  };
+  const seen=new Set();
+  return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:6px">
+      <p style="margin:0;max-width:44em">Dra en lapp oppå en annen for å legge den under. Lappen under må vente til lappen over er høstet. Slik bygger du rekkefølgen trinn for trinn. Dra en lapp tilbake til «Løse lapper», eller trykk ✂️, for å løsne den.</p>
+      <label class="field" style="margin:0;min-width:220px">Finn en lapp<input type="search" id="treeQ" value="${esc(ui.treeQ||'')}" placeholder="Søk etter tittel …" autocomplete="off"></label></div>
+    ${legendHTML()}
+    <div class="tree-wrap">
+      <div class="col" data-drop="loose"><h3>Løse lapper<span class="muted" style="font-size:1rem">${loose.length}</span></h3><div class="muted" style="font-size:.9rem">Lapper som ikke henger sammen med noen andre</div>
+        <div class="pool">${loose.map(t=>`<div class="tnode ${q?(t.title.toLowerCase().includes(q)?'match':'dim'):''}" data-drop="dep:${t.id}" data-tree-title="${esc(t.title.toLowerCase())}">${noteHTML(t,{size:'s',drag:true})}</div>`).join('')||'<p class="muted">Alle lappene henger sammen med andre.</p>'}</div></div>
+      <div class="col"><h3>Slektstrærne<span class="muted" style="font-size:1rem">${roots.length}</span></h3><div class="muted" style="font-size:.9rem">Øverst står det som må gjøres først</div>
+        <ul class="tree" style="margin-top:14px">${roots.map(r=>node(r,seen)).join('')||'<li class="muted">Ingen lapper henger sammen ennå. Dra en løs lapp oppå en annen for å starte et tre.</li>'}</ul></div>
+    </div>`;
+}
+function makeDep(a,bid){
+  const b=task(bid);if(!a||!b||a.id===b.id)return;
+  if(b.id===a.deps[0]&&a.deps.length===1){toast('Den ligger der allerede');return;}
+  if(dependsOn(b.id,a.id)){toast('Det går ikke: «'+b.title+'» venter allerede på «'+a.title+'».');return;}
+  a.deps=[b.id];save();toast('«'+a.title+'» venter nå på «'+b.title+'»');
+}
+
+function pageGartner(){
+  const p=P();
+  const tabs=[['tavle','Tavla'],['kalender','Kalender'],['tre','Lappeslektstre'],['team','Team'],['premier','Premier'+(S.purchases.some(x=>!x.delivered)?' 🎁 '+S.purchases.filter(x=>!x.delivered).length:'')],['poeng','Poengtavle'],['prosjekt','Prosjektet']];
+  const head=`<div class="row" style="justify-content:space-between">
+    <div class="row"><label class="sr" for="projSel">Velg prosjekt</label><select id="projSel" style="width:auto;font-family:var(--display);font-size:1.5rem">${S.projects.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+    </div>
+    <div class="tabs" role="tablist">${tabs.map(([k,n])=>`<button class="chip ${ui.gTab===k?'on':''}" role="tab" aria-selected="${ui.gTab===k}" data-act="gtab" data-tab="${k}">${n}</button>`).join('')}
+      <span class="tab-sep" aria-hidden="true"></span>
+      ${[['mine','Mine lapper'],['gulrot','Gulrøtter og premier'],['profil','Profil']].map(([k,n])=>`<button class="chip" data-act="menu" data-tab="${k}">${n}</button>`).join('')}
+      <button class="chip" data-act="menu" data-tab="chat" data-chatbtn>${chatLabel()}</button>
+      <button class="btn primary small" data-act="newTask">+ Ny lapp</button></div>`;
+  let body='';
+  if(ui.gTab==='tavle'){
+    const vis=visible('gartner');
+    const col=(key,title,list,hint)=>`<div class="col" data-drop="${key}"><h3>${title}<span class="muted" style="font-size:1rem">${list.length}</span></h3><div class="muted" style="font-size:.9rem">${hint}</div>
+      <div class="col-notes">${list.map(x=>stackHTML(x,{drag:true})).join('')}</div></div>`;
+    const sortD=(x,y)=>x.top.deadline.localeCompare(y.top.deadline);
+    const st=stacks(vis);
+    const kolleger=S.members.filter(x=>x.role!=='spire');
+    body=`${statusHTML()}
+      <div class="strip-label">Dra en lapp til en person for å delegere den</div>
+      <div class="team-strip">${kolleger.map(x=>`<div class="avatar" data-drop="assign:${x.id}"><span class="ini">${esc(initials(x.name))}</span>${esc(x.name)} <span class="muted">🥕${x.carrots}</span></div>`).join('')}</div>
+      ${legendHTML()}
+      <div class="board">
+        ${col('col-open','Ledige lapper',st.filter(x=>x.top.status==='open').sort(sortD),'Klare til å bli tatt. Avhengige lapper ligger i bunke under den som må gjøres først.')}
+        ${col('col-claimed','I gang',st.filter(x=>x.top.status==='claimed').sort(sortD),'Dra hit for å ta lappen selv')}
+        ${col('col-done','Høstet',st.filter(x=>x.top.status==='done').sort((x,y)=>(y.top.doneDate||'').localeCompare(x.top.doneDate||'')),'Dra hit når noe er ferdig. Trykk på en høstet lapp for å gjøre den ledig igjen.')}
+      </div>`;
+  } else if(ui.gTab==='kalender'){
+    body=statusHTML()+calendarHTML('gartner');
+  } else if(ui.gTab==='tre'){
+    body=treeHTML();
+  } else if(ui.gTab==='team'){
+    body=`<div class="two-col"><div class="paper-card"><h3>Teamet</h3><div class="list">${S.members.map(x=>`<div class="list-row">
+        <span><span class="who" style="border-color:var(--ink)">${esc(initials(x.name))}</span> ${esc(x.name)} ${x.pending?'<span class="pill">Invitert</span>':''}<br><span class="muted" style="font-size:.9rem">${esc(x.email)}</span></span>
+        <span class="row"><label class="sr" for="r${x.id}">Rolle for ${esc(x.name)}</label><select id="r${x.id}" data-role-for="${x.id}" style="width:auto" ${x.id===S.me.gartner?'disabled':''}>
+          ${['gartner','kollega','spire'].map(r=>`<option value="${r}" ${x.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select>
+          ${x.id!==S.me.gartner?`<button class="btn small danger" data-act="removeMember" data-id="${x.id}" aria-label="Fjern ${esc(x.name)}">Fjern</button>`:''}</span></div>`).join('')}</div></div>
+      <form class="paper-card" data-form="invite"><h3>Inviter noen</h3><p class="muted">De får en e-post med lenke for å registrere seg.</p>
+        <label class="field">Navn<input type="text" name="name" required></label>
+        <label class="field">E-post<input type="email" name="email" required></label>
+        <label class="field">Rolle<select name="role"><option value="kollega">Gartnerassistent</option><option value="gartner">Gartner</option><option value="spire">Spire (frivillig)</option></select></label>
+        <button class="btn primary">Send invitasjon</button></form></div>`;
+  } else if(ui.gTab==='premier'){
+    body=`<div class="two-col"><div class="paper-card"><h3>Premier som skal utleveres</h3><p class="muted">Når noen kjøper en premie, dukker den opp her. Gi den ut og huk av.</p>
+        <div class="list">${S.purchases.map((x,i)=>({...x,i})).filter(x=>!x.delivered).map(x=>`<div class="list-row"><span>${esc(member(x.by)?.name||'Ukjent')}: ${esc(x.prize)} <span class="muted">${fmt(x.date)}</span></span><button class="btn small green" data-act="deliver" data-i="${x.i}">Utlevert ✓</button></div>`).join('')||'<p class="muted">Ingen venter på premie akkurat nå.</p>'}</div>
+        ${S.purchases.some(x=>x.delivered)?`<hr class="pencil"><h3>Utlevert</h3><div class="list">${S.purchases.filter(x=>x.delivered).slice(0,10).map(x=>`<div class="list-row muted"><span>${esc(member(x.by)?.name||'Ukjent')}: ${esc(x.prize)}</span><span>${fmt(x.date)}</span></div>`).join('')}</div>`:''}</div>
+      <div class="paper-card"><h3>Premiekjøleskapet</h3><p class="muted">Hva gartnerassistentene kan kjøpe for gulrøttene sine. Endringer lagres med en gang.</p>
+        <div class="list">${S.prizes.map(z=>`<div class="area-row">
+          <input type="text" value="${esc(z.emoji)}" data-prize="${z.id}" data-field="emoji" maxlength="4" style="flex:0 0 56px;text-align:center" aria-label="Ikon for ${esc(z.name)}">
+          <input type="text" value="${esc(z.name)}" data-prize="${z.id}" data-field="name" aria-label="Navn på premien">
+          <label class="row" style="gap:4px;flex:0 0 auto">🥕<input type="number" min="1" value="${z.cost}" data-prize="${z.id}" data-field="cost" style="width:76px" aria-label="Pris i gulrøtter for ${esc(z.name)}"></label>
+          <button class="btn small danger" data-act="delPrize" data-id="${z.id}" aria-label="Fjern ${esc(z.name)}">Fjern</button></div>`).join('')}</div>
+        <form data-form="prize" class="area-row" style="margin-top:10px"><input type="text" name="emoji" value="🎁" maxlength="4" style="flex:0 0 56px;text-align:center" aria-label="Ikon"><input type="text" name="name" placeholder="Ny premie" required aria-label="Navn på ny premie"><label class="row" style="gap:4px;flex:0 0 auto">🥕<input type="number" name="cost" min="1" value="3" required style="width:76px" aria-label="Pris"></label><button class="btn primary small">Legg til</button></form></div></div>`;
+  } else if(ui.gTab==='poeng'){
+    const k=S.members.filter(x=>x.role!=='spire');
+    body=`<div class="two-col"><div class="paper-card"><h3>Flest gulrøtter</h3><ol class="score">${[...k].sort((a,b)=>b.carrots-a.carrots).map(x=>`<li><span>${esc(x.name)}</span><span>🥕 ${x.carrots}</span></li>`).join('')}</ol></div>
+      <div class="paper-card"><h3>Flest oppgaver</h3><ol class="score">${[...k].sort((a,b)=>b.done-a.done).map(x=>`<li><span>${esc(x.name)}</span><span>${x.done} ferdige</span></li>`).join('')}</ol></div></div>`;
+  } else {
+    const count=id=>p.tasks.filter(t=>t.area===id).length;
+    body=`<div class="two-col"><form class="paper-card" data-form="project"><h3>Om prosjektet</h3>
+        <label class="field">Navn<input type="text" name="name" value="${esc(p.name)}" required></label>
+        <div class="row" style="align-items:flex-start"><label class="field" style="flex:1 1 150px">Festivalen åpner<input type="date" name="date" value="${p.festivalDate}" required></label>
+          <label class="field" style="flex:0 1 120px">Klokkeslett<input type="time" name="time" value="${esc(p.festivalTime||'18:00')}" required></label></div>
+        <label class="field">Festivalen slutter<input type="date" name="end" value="${festEnd(p)}" required></label>
+        <label class="field">Info til teamet<textarea name="info">${esc(p.info)}</textarea></label>
+        <label class="check"><input type="checkbox" name="showTop" data-showtop ${p.showTop!==false?'checked':''}>Vis topplisten for teamet (på dashboardet og under Gulrøtter)</label>
+        <button class="btn primary">Lagre</button></form>
+      <div class="paper-card"><h3>Avdelinger</h3><p class="muted">Hver avdeling får sin egen farge på lappene. Endringer lagres med en gang.</p>
+        <div class="list">${p.areas.map(a=>`<div class="area-row">
+          <input type="color" value="${a.c}" data-area-color="${a.id}" aria-label="Farge for ${esc(a.n)}">
+          <input type="text" value="${esc(a.n)}" data-area-name="${a.id}" aria-label="Navn på avdelingen">
+          <span class="muted" style="font-size:.9rem">${count(a.id)} lapper</span>
+          <button class="btn small danger" data-act="delArea" data-id="${a.id}" aria-label="Fjern ${esc(a.n)}">Fjern</button></div>`).join('')}</div>
+        <form data-form="area" class="area-row" style="margin-top:10px"><input type="color" name="c" value="#ffe38a" aria-label="Farge"><input type="text" name="n" placeholder="Ny avdeling" required aria-label="Navn på ny avdeling"><button class="btn primary small">Legg til</button></form></div>
+      <div class="paper-card"><h3>Ny runde</h3><p>Når festivalen er over, snur du bunken. Alle lappene blir med til neste år, blanke og uten eiere. Erfaringsnotatene og avdelingene følger med.</p>
+        <button class="btn green" data-act="dupProject">Snu bunken</button>
+        <hr class="pencil"><h3>Nytt prosjekt</h3><p>Start et helt nytt prosjekt uten lapper.</p><button class="btn" data-act="newProject">Nytt tomt prosjekt</button></div></div>`;
+  }
+  return head+body;
+}
+
+function pageDashboard(){
+  const p=P();
+  const top=S.members.filter(x=>x.role!=='spire').sort((a,b)=>b.carrots-a.carrots).slice(0,3);
+  const recent=p.tasks.filter(t=>t.status==='done'&&t.public).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||'')).slice(0,5);
+  return `<h2 style="font-size:2.6rem">${esc(p.name)}</h2>${statusHTML(true)}
+    <div class="dash">
+      <div>${calendarHTML('dashboard')}<p class="muted" style="margin-top:14px">Skann QR-koden på en ledig lapp med mobilen for å lese om den og ta den. Grå lapper er allerede tatt.</p></div>
+      <aside class="paper-card">${p.showTop!==false?`<h3>Topp tre høstere</h3><ol class="score" style="font-size:1.35rem">${top.map(x=>`<li><span>${esc(x.name)}</span><span>🥕 ${x.carrots}</span></li>`).join('')}</ol>
+        <hr class="pencil">`:''}<h3>Nylig høstet</h3>${recent.map(t=>`<div>✓ ${esc(t.title)} <span class="muted">(${esc(participants(t).map(id=>member(id)?.name).filter(Boolean).join(', '))})</span></div>`).join('')||'<p class="muted">Ingenting ennå.</p>'}
+        <hr class="pencil"><h3>Info</h3><p>${esc(p.info)}</p></aside>
+    </div>`;
+}
+
+function handleScan(){
+  const r=route();if(!r.startsWith('lapp-')){ui.scan=null;return;}
+  const id=r.slice(5);
+  const proj=S.projects.find(p=>p.tasks.some(t=>t.id===id));
+  if(!proj){ui.scan={id,status:'missing'};return;}
+  S.active=proj.id;const t=task(id),m=me();let status;
+  if(!m||m.role==='spire')status='spire';
+  else if(t.status==='done')status='done';
+  else if(isIn(t,m))status='mine';
+  else if(t.status==='open'&&isBlocked(t))status='blocked';
+  else if(canClaim(t,m))status='available';
+  else if(canJoin(t,m))status='joinable';
+  else if(t.status==='claimed')status='taken';
+  else status='no';
+  save();ui.scan={id,status};
+}
+function pageScan(){
+  const sc=ui.scan||{status:'missing'};const t=task(sc.id);const m=me();
+  if(sc.status==='missing'||!t)return `<div class="paper-card" style="max-width:560px"><h2>Fant ikke lappen</h2><p>Den kan være slettet. I demoen lagres lappene bare på hver enhet, så en lapp som er laget på laptopen, finnes ikke på mobilen. Det løses i den ekte versjonen.</p><button class="btn" data-act="go" data-to="forside">Til forsiden</button></div>`;
+  const leader=member(t.leader), names=participants(t).map(id=>member(id)?.name).filter(Boolean).join(', ');
+  const msg={available:['Vil du ta denne lappen?','Tar du den, blir du leder for oppgaven. Blir flere med, deles gulrøttene likt.'],
+    joinable:['Vil du bli med?',esc(names)+' har tatt denne, men det er plass til '+(t.people-participants(t).length)+' til. Gulrøttene deles likt.'],
+    claimed:['Lappen er din! 🥕','Du er leder for denne. Blir flere med, deles gulrøttene likt.'],
+    joined:['Du er med! 🙌','Du jobber sammen med '+esc(leader?.name||'de andre')+'. Gulrøttene deles likt.'],
+    mine:['Denne er allerede din','Du finner den på siden din.'],
+    taken:['Denne er tatt','«'+esc(t.title)+'» er tatt av '+esc(leader?.name||'noen andre')+', og det er ikke plass til flere.'],
+    done:['Denne er allerede høstet','Godt jobbet, team!'],
+    spire:['Her er lappen','Som spire kan du lese om oppgaven, men ikke ta den.'],
+    no:['Denne kan du ikke ta','Lappen er ikke åpen for deg.']}[sc.status];
+  const ask=sc.status==='available'||sc.status==='joinable';
+  const buttons=ask?`<button class="btn primary" data-act="${sc.status==='available'?'claim':'join'}" data-id="${t.id}">${sc.status==='available'?'Ja, jeg tar den!':'Ja, jeg blir med!'}</button><button class="btn ghost" data-act="goMine">Nei takk</button>`:`<button class="btn primary" data-act="goMine">Gå til mine lapper</button>`;
+  return `<div style="max-width:560px">
+    <div style="margin:14px 0 24px">${noteHTML(t,{size:'l'})}</div>
+    ${t.desc?`<p>${esc(t.desc)}</p>`:''}
+    <p class="muted">Dato: ${fmt(t.deadline)}. ${t.carrots} 🥕${t.people>1?', for opptil '+t.people+' personer':''}.</p>
+    ${sc.status==='blocked'?`<h2>Ikke ennå</h2>${warnHTML(t)}`:`<h2>${msg[0]}</h2><p>${msg[1]}</p>`}
+    <div class="row">${buttons}</div>
+    <p class="muted" style="font-size:.9rem;margin-top:16px">I demoen er det ${esc(m?.name||'')} (${ROLE_NAMES[m?.role]||''}) som skanner. Bytt rolle øverst for å teste som en annen.</p></div>`;
+}
+
+/* ---------- Modals ---------- */
+function openModal(html,wide=false){
+  ui.modalCtx=null;
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg" data-act="closeBg"><div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true"><button class="x" data-act="close" aria-label="Lukk">×</button>${html}</div></div>`;
+  const f=document.querySelector('.modal input:not([type=color]),.modal button:not(.x),.modal textarea');if(f&&!isMobile())f.focus({preventScroll:true});
+  renderQR();
+}
+function closeModal(){document.getElementById('modalRoot').innerHTML='';ui.modalCtx=null;}
+let pendingAsk=null;
+function ask(text,okLabel,fn,danger){
+  openModal(`<h2>Er du sikker?</h2><p>${text}</p><div class="row" style="margin-top:14px"><button class="btn ${danger?'danger':'primary'}" data-act="askOk">${okLabel}</button><button class="btn ghost" data-act="close">Avbryt</button></div>`);
+  pendingAsk=fn;
+}
+function refreshModal(){
+  const c=ui.modalCtx;if(!c)return;
+  if(c.startsWith('menu:'))openMenu(c.slice(5));
+  else if(c.startsWith('detail:')){const t=task(c.slice(7));if(t)openDetail(t,roleOfRoute()||'spire');}
+}
+function openHarvest(t){
+  if(isBlocked(t)){toast(blockedMsg(t));return;}
+  openModal(`<h2>Høst «${esc(t.title)}»</h2><p>Bra jobba! Er det noe som er lurt å huske til neste år? Endringer, tips eller ting som gikk galt. Notatet blir med lappen når bunken snus.</p>
+    <form data-form="harvest" data-id="${t.id}"><label class="field">Erfaringsnotat (valgfritt)<textarea name="text" placeholder="F.eks. bestill tidlig, de blir fort fullbooket"></textarea></label>
+    <button class="btn green">Høst ${t.carrots} 🥕</button></form>`);
+}
+function prevNotesHTML(t){
+  if(!t.notes||!t.notes.length)return '';
+  return `<hr class="pencil"><h3>Tidligere notater</h3>
+    ${t.notes.map(n=>`<div class="note note-s" style="--note:var(--pi-gul);--rot:-.5deg;cursor:default;margin:10px 0"><div>${esc(n.text)}</div><div class="note-meta">${esc(member(n.byId)?.name||n.by)}, ${fmt(n.date)}</div></div>`).join('')}`;
+}
+function warnHTML(t){
+  const bl=blockers(t);if(!bl.length)return '';
+  return `<div class="warn" role="alert"><b>⚠️ Denne lappen kan ${t.status==='open'?'ikke tas':'ikke gjøres'} ennå.</b><br>Først må ${bl.length>1?'disse oppgavene':'denne oppgaven'} gjøres:
+    <div class="row" style="margin-top:8px">${bl.map(b=>`<button class="btn small" data-act="openTask" data-id="${b.id}">${esc(b.title)}</button>`).join('')}</div></div>`;
+}
+function openTask(id){
+  const t=task(id);if(!t)return;
+  const role=roleOfRoute();
+  if(route()==='dashboard'){openDetail(t,'spire');return;}
+  if(role==='gartner'&&!isMobile()){openEditor(t);return;}
+  openDetail(t,role||'spire');
+}
+function openPartner(t){
+  const ps=participants(t), n=ps.length+1, each=Math.floor(t.carrots/n);
+  const cands=S.members.filter(x=>x.role!=='spire'&&!x.pending&&!ps.includes(x.id));
+  openModal(`<h2>Legg til samarbeidspartner</h2>
+    <p>Hvem vil du jobbe sammen med på «${esc(t.title)}»? Gartneren har satt lappen til ${t.people} personer, så det er plass til ${t.people-ps.length} til. Gulrøttene deles likt på alle som er med.</p>
+    <p class="muted">Med én til blir dere ${n}, og ${t.carrots} 🥕 deles på ${n}: ${each} hver${t.carrots-each*n?' (lederen får den ekstra gulroten)':''}.</p>
+    <div class="list">${cands.map(x=>`<div class="list-row"><span><span class="who" style="border-color:var(--ink)">${esc(initials(x.name))}</span> ${esc(x.name)} <span class="muted">${ROLE_NAMES[x.role]}</span></span>
+      <button class="btn small primary" data-act="addPartner" data-id="${t.id}" data-mid="${x.id}">Legg til</button></div>`).join('')||'<p class="muted">Det er ingen andre i teamet å legge til.</p>'}</div>`);
+}
+function openDetail(t,role){
+  const m=me(), a=areaOf(t);
+  const deps=t.deps.map(task).filter(Boolean);
+  const ps=participants(t).map(member).filter(Boolean);
+  const dash=route()==='dashboard';
+  const ro=role==='spire'||dash;
+  const blk=t.status!=='done'&&isBlocked(t);
+  let actions='';
+  if(!ro){
+    if(!blk&&canClaim(t,m))actions+=`<button class="btn primary" data-act="claim" data-id="${t.id}">Ta den!</button>`;
+    if(!blk&&canJoin(t,m))actions+=`<button class="btn" data-act="join" data-id="${t.id}">Bli med (${participants(t).length}/${t.people})</button>`;
+    if(isIn(t,m)&&t.status==='claimed'){if(!blk)actions+=`<button class="btn green" data-act="finish" data-id="${t.id}">Ferdig! Høst ${t.carrots} 🥕</button>`;
+      actions+=`<button class="btn" data-act="giveUp" data-id="${t.id}">✋ Gi slipp på lappen</button>${partnerBtnHTML(t)}`;}
+  }
+  openModal(`<div class="detail-note">${noteHTML(t,{size:'l'}).replace('data-open','data-x')}</div>
+    ${blk&&role!=='spire'?warnHTML(t):''}
+    <p><span class="pill">${esc(a.n)}</span> ${t.reverseOf?'<span class="pill">Nedrigging</span>':''}</p>
+    ${t.desc?`<p>${esc(t.desc)}</p>`:''}
+    <p><b>Dato:</b> ${fmt(t.deadline)}<br><b>Gulrøtter:</b> ${t.carrots}, delt likt på ${t.people>1?'opptil '+t.people+' personer':'den som gjør den'}<br>
+      <b>Hvem:</b> ${ps.length?ps.map((p,i)=>esc(p.name)+(i===0?' (leder)':'')).join(', '):'Ledig'}${t.mode==='assigned'?', delegert av gartneren':''}</p>
+    ${deps.length?`<p><b>Må gjøres først:</b><br>${deps.map(d=>`<span class="dep">${d.status==='done'?'✓':'○'} ${esc(d.title)}</span>`).join('<br>')}</p>`:''}
+    ${actions?`<div class="row" style="margin:14px 0">${actions}</div>`:''}${!ro&&ui.partnerOpen===t.id&&isIn(t,m)?partnerFormHTML(t):''}
+    ${dash&&(t.status==='open'||(t.status==='claimed'&&participants(t).length<t.people))?`<div class="qr-big"><div class="note-qr" data-qr="200" data-qrtext="${SHARE_URL}#lapp-${t.id}"></div><span>${t.status==='open'?'Skann for å lese om lappen og ta den':'Skann for å bli med'}</span></div>`:''}
+    ${prevNotesHTML(t)}`);
+  ui.modalCtx='detail:'+t.id;
+}
+function notesHTML(t,canAdd){
+  return `<hr class="pencil"><h3>Erfaringsnotater</h3><p class="muted" style="font-size:.95rem">Hvordan ble den løst? Notatene følger med til neste år.</p>
+    ${t.notes.map(n=>`<div class="note note-s" style="--note:var(--pi-gul);--rot:-.5deg;cursor:default;margin:10px 0"><div>${esc(n.text)}</div><div class="note-meta">${esc(member(n.byId)?.name||n.by)}, ${fmt(n.date)}</div></div>`).join('')||'<p class="muted">Ingen notater ennå.</p>'}
+    ${canAdd?`<form data-form="note" data-id="${t.id}" class="row" style="align-items:flex-end;margin-top:8px"><label class="field" style="flex:1 1 240px;margin:0">Nytt notat<input type="text" name="text" required placeholder="F.eks. bestill tidlig, de blir fort fullbooket"></label><button class="btn">Legg til</button></form>`:''}`;
+}
+function openEditor(t){
+  const isNew=!t, p=P();
+  t=t||{id:'',title:'',desc:'',area:(p.areas[0]||{}).id||'',carrots:3,people:1,start:rel(0),deadline:rel(7),deps:[],mode:'open',leader:null,helpers:[],status:'open',public:true,reversible:false,reverseTitle:'',reverseInfo:'',notes:[]};
+  const others=p.tasks.filter(x=>x.id!==t.id);
+  const kolleger=S.members.filter(x=>x.role!=='spire');
+  const assigned=t.mode==='assigned'?t.leader:'';
+  const ps=participants(t).map(member).filter(Boolean);
+  const m=me();
+  openModal(`<h2>${isNew?'Ny lapp':'Rediger lapp'}</h2>
+    <form data-form="task" data-id="${t.id}">
+      <label class="field">Hva skal gjøres?<input type="text" name="title" value="${esc(t.title)}" required></label>
+      <label class="field">Beskrivelse<textarea name="desc">${esc(t.desc)}</textarea></label>
+      <div class="two-col" style="gap:0 16px">
+        <label class="field">Avdeling<select name="area">${p.areas.map(a=>`<option value="${a.id}" ${t.area===a.id?'selected':''}>${esc(a.n)}</option>`).join('')}</select></label>
+        <label class="field">Gulrøtter 🥕<input type="number" name="carrots" min="1" value="${t.carrots}" required></label>
+        <label class="field">Dato for oppgaven<input type="date" name="date" value="${t.deadline}" required></label>
+        <label class="field">Antall personer<input type="number" name="people" min="1" max="20" value="${t.people}"></label>
+        <label class="field">Hvem tar den?<select name="assign"><option value="">Ledig for alle</option>${kolleger.map(k=>`<option value="${k.id}" ${assigned===k.id?'selected':''}>Delegert til ${esc(k.name)}</option>`).join('')}</select></label>
+      </div>
+      ${others.length?`<details ${t.deps.length?'open':''}><summary style="cursor:pointer">Må vente på andre oppgaver (${t.deps.length})</summary>
+        <p class="muted" style="font-size:.9rem;margin:6px 0">Tips: I fanen «Lappeslektstre» kan du dra og slippe lapper i riktig rekkefølge.</p>
+        <input type="search" data-depfilter placeholder="Søk etter lapp …" aria-label="Søk etter lapp" style="margin-bottom:4px"><div style="max-height:180px;overflow:auto;padding:4px 2px">
+        ${[...others].sort((x,y)=>(t.deps.includes(y.id)?1:0)-(t.deps.includes(x.id)?1:0)).map(o=>`<label class="check"><input type="checkbox" name="deps" value="${o.id}" ${t.deps.includes(o.id)?'checked':''}>${esc(o.title)}</label>`).join('')}</div></details>`:''}
+      <label class="check"><input type="checkbox" name="alertOn" ${t.alert?'checked':''} data-toggle="alertBox">Send varsel på e-post til den som har lappen</label>
+      <div id="alertBox" ${t.alert?'':'hidden'} style="padding-left:28px"><label class="field" style="max-width:220px">Hvor lenge før?<select name="alert">${[3,7,14].map(n=>`<option value="${n}" ${(t.alert||7)===n?'selected':''}>${n} dager før</option>`).join('')}</select></label></div>
+      <label class="check"><input type="checkbox" name="public" ${t.public?'checked':''}>Synlig for hele teamet (ellers bare for deg)</label>
+      <label class="check"><input type="checkbox" name="reversible" ${t.reversible?'checked':''} data-toggle="revBox">Reversibel: lag en nedriggingslapp når denne er ferdig</label>
+      <div id="revBox" ${t.reversible?'':'hidden'} style="padding-left:28px">
+        <label class="field">Navn på nedriggingslappen<input type="text" name="reverseTitle" value="${esc(t.reverseTitle)}" placeholder="F.eks. Rigge ned scenen"></label>
+        <label class="field">Hvordan skal det rigges ned?<textarea name="reverseInfo" placeholder="Hvor skal ting stå, hva må pakkes hvordan …">${esc(t.reverseInfo)}</textarea></label></div>
+      <div class="row" style="margin-top:12px;justify-content:space-between"><button class="btn primary">${isNew?'Heng opp lappen':'Lagre'}</button>
+        ${isNew?'':`<button type="button" class="btn danger" data-act="delTask" data-id="${t.id}">Slett</button>`}</div>
+    </form>
+    ${isNew?'':`<hr class="pencil">${t.status==='open'&&isBlocked(t)?warnHTML(t):''}<div class="row"><span>Status: <b>${{open:'Ledig',claimed:'I gang',done:'Høstet'}[t.status]}</b>${ps.length?', '+ps.map(x=>esc(x.name)).join(', '):''}</span>
+      ${canClaim(t,m)?`<button class="btn small" data-act="claim" data-id="${t.id}">Ta den selv</button>`:''}
+      ${t.status==='claimed'?`<button class="btn small green" data-act="finish" data-id="${t.id}">Marker som ferdig</button><button class="btn small ghost" data-act="release" data-id="${t.id}">Heng opp igjen</button>`:''}
+      ${t.status==='done'?`<button class="btn small" data-act="undone" data-id="${t.id}">↺ Gjør tilgjengelig igjen</button>`:''}</div>
+      ${prevNotesHTML(t)}`}`,true);
+}
+function openMenu(tab){
+  const role=roleOfRoute()||'kollega';
+  const tabs=role==='spire'?[['profil','Profil'],['chat',chatLabel()]]:role==='kollega'?[['gulrot','Gulrøtter og premier'],['profil','Profil'],['chat',chatLabel()]]:[['mine','Mine lapper'],['gulrot','Gulrøtter og premier'],['profil','Profil'],['chat',chatLabel()]];
+  openModal(`<div class="tabs">${tabs.map(([k,n])=>`<button class="chip ${tab===k?'on':''}" data-act="menu" data-tab="${k}" ${k==='chat'?'data-chatbtn':''}>${n}</button>`).join('')}</div>${menuBody(tab,false)}`,true);
+  ui.modalCtx='menu:'+tab;
+  if(tab==='chat')afterChat();
+}
+function openLogin(){
+  openModal(`<h2>Kom i gang</h2><p>I den ferdige versjonen logger du inn med Google-kontoen din. I demoen velger du bare hvem du vil være:</p>
+    <div class="list">
+      <button class="btn primary" data-act="loginAs" data-role="gartner">Jeg starter et prosjekt (Gartner)</button>
+      <button class="btn" data-act="loginAs" data-role="kollega">Jeg er invitert av en gartner (Gartnerassistent)</button>
+      <button class="btn" data-act="loginAs" data-role="spire">Jeg er frivillig og vil følge med (Spire)</button></div>`);
+}
+function openInstall(){
+  openModal(`<h2>Legg Karrot på hjemskjermen</h2>
+    <h3>iPhone (Safari)</h3><p>Trykk på del-knappen (firkanten med pil opp), og velg «Legg til på Hjem-skjerm».</p>
+    <h3>Android (Chrome)</h3><p>Trykk på de tre prikkene øverst til høyre, og velg «Installer app» eller «Legg til på startskjermen».</p>
+    <h3>Laptop</h3><p>I Chrome eller Edge dukker det opp et installer-ikon i adresselinjen. Ellers kan du bare bokmerke siden.</p>
+    <p class="muted">I den ferdige versjonen får Karrot eget ikon og åpnes i fullskjerm som en vanlig app.</p>`);
+}
+
+/* ---------- QR ---------- */
+function renderQR(){
+  document.querySelectorAll('[data-qr]').forEach(el=>{
+    if(el.dataset.done)return;el.dataset.done='1';
+    const size=+el.dataset.qr||80, text=el.dataset.qrtext||SHARE_URL;
+    if(window.QRCode){try{new QRCode(el,{text,width:size,height:size,colorDark:'#2d2e35',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});}catch(e){el.textContent='QR';}}
+    else{el.style.cssText+=`width:${size}px;height:${size}px;display:grid;place-items:center;color:#2d2e35;line-height:1`;el.textContent='QR';}
+  });
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const r=route();
+  document.querySelectorAll('.roles .chip').forEach(c=>c.setAttribute('aria-current',c.dataset.to===r?'page':'false'));
+  const app=document.getElementById('app');
+  if(isRole(r)&&S.lastRole!==r){S.lastRole=r;save();}
+  if(isRole(r)&&isMobile())app.innerHTML=pageMobile(r);
+  else app.innerHTML = r==='gartner'?pageGartner(): r==='kollega'?pageTeam('kollega'): r==='spire'?pageTeam('spire'):
+                  r==='dashboard'?pageDashboard(): r==='tips'?pageTips(): r.startsWith('lapp-')?pageScan(): pageForside();
+  renderQR();
+  if(document.getElementById('chatLog'))afterChat();
+  if(isRole(r)&&r!=='spire')showNotices();
+}
+function showNotices(){
+  const m=me();if(!m)return;
+  const list=S.notices.filter(n=>n.to===m.id&&!n.read);if(!list.length)return;
+  list.forEach(n=>n.read=true);save();
+  document.querySelectorAll('.push').forEach(x=>x.remove());
+  const d=document.createElement('div');d.className='push';d.setAttribute('role','status');
+  d.innerHTML=`<small>📲 Karrot, varsel</small>${list.map(n=>esc(n.text)).join('<br>')}`;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),6000);
+}
+function tick(){const els=document.querySelectorAll('[data-countdown]');if(els.length){const h=cdHTML();els.forEach(e=>e.innerHTML=h);}}
+
+/* ---------- Events ---------- */
+let suppressClick=false;
+document.addEventListener('click',e=>{
+  if(suppressClick){suppressClick=false;e.preventDefault();e.stopPropagation();return;}
+  const a=e.target.closest('[data-act]');
+  if(a){const d=a.dataset;
+    if(!(d.act==='closeBg'&&e.target!==a)){act(d.act,d,a);return;}}
+  const o=e.target.closest('[data-open]');if(o)openTask(o.dataset.open);
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-open]')){e.preventDefault();openTask(e.target.dataset.open);}
+});
+function inModal(){return !!document.querySelector('.modal');}
+function act(name,d){
+  const m=me();
+  const t=d.id?task(d.id):null;
+  switch(name){
+    case 'go': closeModal(); if(location.hash==='#'+d.to)render(); else location.hash=d.to; window.scrollTo(0,0); break;
+    case 'goMine': { const r=S.lastRole||'kollega'; ui.mTab='mine'; location.hash=r; if(!isMobile()&&r==='gartner')setTimeout(()=>openMenu('mine'),80); break; }
+    case 'askOk': { const f=pendingAsk; pendingAsk=null; closeModal(); if(f)f(); break; }
+    case 'detach': if(t){t.deps=[];save();render();toast('«'+t.title+'» er løsnet');} break;
+    case 'stack': { if(ui.openStacks.has(d.id))ui.openStacks.delete(d.id); else ui.openStacks.add(d.id); render(); break; }
+    case 'undone': if(t&&t.status==='done')ask(`«${esc(t.title)}» blir ledig igjen, og gulrøttene som ble delt ut for den, trekkes tilbake.`,'Gjør tilgjengelig igjen',()=>{uncomplete(t);render();}); break;
+    case 'close': case 'closeBg': closeModal(); break;
+    case 'login': openLogin(); break;
+    case 'loginAs': closeModal(); location.hash=d.role; toast('Velkommen til Karrot! 🥕'); break;
+    case 'install': openInstall(); break;
+    case 'reset': ask('Alle endringer du har gjort i demoen forsvinner.','Nullstill demoen',()=>{S=seed();save();render();toast('Demoen er nullstilt');},true); break;
+    case 'gtab': ui.gTab=d.tab; render(); break;
+    case 'view': ui.view=d.v; if(d.v==='dag')ui.day=iso(today()); else ui.day=null; render(); break;
+    case 'nav': { const n=+d.dir;
+      if(ui.view==='dag'){ui.day=addISO(ui.day||iso(today()),n);ui.anchor=pd(ui.day);}
+      else if(ui.view==='maaned')ui.anchor=new Date(ui.anchor.getFullYear(),ui.anchor.getMonth()+n,1);
+      else if(ui.view==='aar')ui.anchor=new Date(ui.anchor.getFullYear()+n,ui.anchor.getMonth(),1);
+      else ui.anchor=addDays(ui.anchor,7*n);
+      render(); break; }
+    case 'today': ui.anchor=today(); if(ui.view==='dag')ui.day=iso(today()); render(); break;
+    case 'day': ui.day=d.date; ui.view='dag'; ui.anchor=pd(d.date); render(); break;
+    case 'month': ui.anchor=new Date(ui.anchor.getFullYear(),+d.m,1); ui.view='maaned'; render(); break;
+    case 'area': ui.area=d.area||null; render(); break;
+    case 'dashFilter': ui.dashFilter=d.f||null; render(); break;
+    case 'menu': if(isMobile()&&isRole(route())){closeModal();ui.mTab=d.tab;render();} else openMenu(d.tab); break;
+    case 'mtab': ui.mTab=d.tab; render(); window.scrollTo(0,0); break;
+    case 'openTask': openTask(d.id); break;
+    case 'newTask': openEditor(null); break;
+    case 'claim': if(t&&claim(t,m)){if(ui.scan&&route().startsWith('lapp-'))ui.scan.status='claimed';closeModal();render();} break;
+    case 'join': if(t&&join(t,m)){if(ui.scan&&route().startsWith('lapp-'))ui.scan.status='joined';closeModal();render();} break;
+    case 'leave': if(t){t.helpers=t.helpers.filter(h=>h!==m.id);save();closeModal();render();toast('Du har gått ut av lappen');} break;
+    case 'partner': if(t&&isIn(t,m)&&t.people>1&&participants(t).length<t.people){ui.partnerOpen=ui.partnerOpen===t.id?null:t.id; if(inModal())refreshModal(); else render();} break;
+    case 'addPartner': { const x=member(d.mid); if(!t||!x||participants(t).includes(x.id))break;
+      if(participants(t).length>=t.people){toast('Laget er fullt. Gartneren har satt lappen til '+t.people+' personer.');break;}
+      t.helpers.push(x.id); save();
+      closeModal(); render(); toast(`${x.name} er lagt til. ${t.carrots} 🥕 deles nå på ${participants(t).length}.`); break; }
+    case 'release': if(t){release(t);closeModal();render();} break;
+    case 'giveUp': { if(!t||!isIn(t,m)||t.status!=='claimed')break;
+      const alone=t.leader===m.id;
+      ask(`Gi slipp på «${esc(t.title)}»?${alone?' Den blir ledig, så andre kan ta den.':''}`,'✋ Gi slipp',()=>{
+        if(t.leader===m.id){release(t);}
+        else{t.helpers=t.helpers.filter(h=>h!==m.id);save();toast('Du har gitt slipp på lappen');}
+        if(ui.partnerOpen===t.id)ui.partnerOpen=null; render();});
+      break; }
+    case 'finish': if(t&&t.status==='claimed')openHarvest(t); break;
+    case 'delTask': if(t)ask(`Slette «${esc(t.title)}»? Det kan ikke angres.`,'Slett lappen',()=>{const p=P();p.tasks=p.tasks.filter(x=>x.id!==t.id);p.tasks.forEach(x=>x.deps=x.deps.filter(i=>i!==t.id));save();render();toast('Lappen er slettet');},true); break;
+    case 'buy': { const z=S.prizes.find(x=>x.id===d.id); if(z){buy(z); if(inModal())openMenu('gulrot'); render();} break; }
+    case 'delPrize': S.prizes=S.prizes.filter(x=>x.id!==d.id); save(); render(); break;
+    case 'deliver': { const x=S.purchases[+d.i]; if(x){x.delivered=true; save(); render(); toast((member(x.by)?.name||'Premien')+' har fått '+x.prize.toLowerCase()+' 🎁');} break; }
+    case 'delArea': { const p=P(); if(p.areas.length<=1){toast('Prosjektet må ha minst én avdeling');break;}
+      const a=p.areas.find(x=>x.id===d.id); const n=p.tasks.filter(x=>x.area===d.id).length; const rest=p.areas.filter(x=>x.id!==d.id);
+      const doIt=()=>{p.tasks.forEach(x=>{if(x.area===d.id)x.area=rest[0].id;}); p.areas=rest; if(ui.area===d.id)ui.area=null; save(); render();};
+      if(n)ask(`Fjerne «${esc(a.n)}»? ${n} lapper flyttes til «${esc(rest[0].n)}».`,'Fjern avdelingen',doIt,true); else doIt(); break; }
+    case 'removeMember': { const x=member(d.id); if(x)ask(`Fjerne ${esc(x.name)} fra teamet? Lappene hen har, blir ledige.`,'Fjern',()=>{S.members=S.members.filter(y=>y.id!==d.id);P().tasks.forEach(tk=>{if(tk.leader===d.id&&tk.status!=='done')release(tk);tk.helpers=tk.helpers.filter(h=>h!==d.id);});save();render();},true); break; }
+    case 'dupProject': ask('Det lages et nytt prosjekt for neste år med de samme lappene, blanke. Alle gulrøtter nullstilles.','Snu bunken',()=>{duplicateProject();ui.gTab='tavle';render();}); break;
+    case 'newProject': openModal(`<h2>Nytt prosjekt</h2><form data-form="newProject"><label class="field">Hva heter prosjektet?<input type="text" name="name" required></label><button class="btn primary">Opprett</button></form>`); break;
+  }
+}
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='projSel'){S.active=el.value;ui.area=null;save();render();}
+  if(el.dataset.roleFor){const x=member(el.dataset.roleFor);if(x){x.role=el.value;
+    if(x.role==='spire')P().tasks.forEach(tk=>{if(tk.leader===x.id&&tk.status!=='done')release(tk);tk.helpers=tk.helpers.filter(h=>h!==x.id);});
+    save();render();toast(x.name+' er nå '+ROLE_NAMES[x.role].toLowerCase());}}
+  if(el.dataset.toggle){const b=document.getElementById(el.dataset.toggle);if(b)b.hidden=!el.checked;}
+  if(el.hasAttribute&&el.hasAttribute('data-showtop')){P().showTop=el.checked;save();toast(el.checked?'Topplisten vises for teamet':'Topplisten er skjult for teamet');}
+  if(el.dataset.prize){const z=S.prizes.find(x=>x.id===el.dataset.prize);if(z){const f=el.dataset.field;
+    if(f==='cost')z.cost=Math.max(1,+el.value||1);else if(el.value.trim())z[f]=el.value.trim();save();toast('Premien er lagret');}}
+  if(el.dataset.areaColor){const a=P().areas.find(x=>x.id===el.dataset.areaColor);if(a){a.c=el.value;save();toast('Fargen er lagret');}}
+  if(el.dataset.areaName){const a=P().areas.find(x=>x.id===el.dataset.areaName);if(a&&el.value.trim()){a.n=el.value.trim();save();toast('Avdelingen heter nå «'+a.n+'»');}}
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.id==='treeQ'){ui.treeQ=el.value;const q=el.value.trim().toLowerCase();
+    document.querySelectorAll('[data-tree-title]').forEach(n=>{const hit=q&&n.dataset.treeTitle.includes(q);n.classList.toggle('match',!!hit);n.classList.toggle('dim',!!q&&!hit);});
+    const first=document.querySelector('.tnode.match');if(first&&q)first.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  if(el.hasAttribute('data-depfilter')){const q=el.value.trim().toLowerCase();
+    el.closest('details').querySelectorAll('label.check').forEach(l=>{l.hidden=!!q&&!l.textContent.toLowerCase().includes(q);});}
+});
+document.addEventListener('submit',e=>{
+  const f=e.target;if(!f.dataset.form)return;e.preventDefault();
+  const fd=new FormData(f);const g=k=>(fd.get(k)||'').toString().trim();
+  switch(f.dataset.form){
+    case 'feedback': f.reset(); toast('Takk for innspillet! Det er sendt til Karrot.'); break;
+    case 'invite': S.members.push({id:uid(),name:g('name'),role:g('role'),phone:'',email:g('email'),carrots:0,done:0,pending:true}); save(); render(); toast('Invitasjon sendt til '+g('email')); break;
+    case 'prize': S.prizes.push({id:uid(),name:g('name'),cost:Math.max(1,+g('cost')||1),emoji:g('emoji')||'🎁'}); save(); render(); break;
+    case 'area': P().areas.push({id:uid(),n:g('n'),c:g('c')||'#fff27a'}); save(); render(); toast('Avdelingen «'+g('n')+'» er lagt til'); break;
+    case 'project': { const p=P(); if(g('end')<g('date')){toast('Sluttdatoen kan ikke være før festivalen åpner');break;} p.festivalEnd=g('end'); p.name=g('name'); p.festivalDate=g('date'); p.festivalTime=g('time')||'18:00'; p.info=g('info'); p.showTop=fd.has('showTop'); save(); render(); toast('Prosjektet er lagret'); break; }
+    case 'profile': { const m=me(); m.name=g('name')||m.name; m.phone=g('phone'); m.email=g('email'); save(); closeModal(); render(); toast('Profilen er lagret'); break; }
+    case 'chat': { const m=me(), text=g('text'); if(!m||!text)break; S.chat.push({id:uid(),by:m.id,text,ts:Date.now()}); if(S.chat.length>150)S.chat=S.chat.slice(-150); save(); refreshChat(); simulateReply(m.id); break; }
+    case 'note': { const t=task(f.dataset.id); if(t){t.notes.push({byId:me().id,by:me().name,text:g('text'),date:iso(today())});save();
+      (roleOfRoute()==='gartner'&&!isMobile())?openEditor(t):openDetail(t,roleOfRoute());} break; }
+    case 'task': saveTask(fd,f); break;
+    case 'harvest': { const t=task(f.dataset.id); if(!t)break; const text=g('text'); const by=me();
+      if(text)t.notes.push({byId:by?.id,by:by?.name||'',text,date:iso(today())});
+      complete(t); if(ui.partnerOpen===t.id)ui.partnerOpen=null; closeModal(); render(); break; }
+    case 'partner': { const t=task(f.dataset.id), x=member(g('mid')); if(!t||!x||participants(t).includes(x.id))break;
+      if(participants(t).length>=t.people){toast('Laget er fullt. Gartneren har satt lappen til '+t.people+' personer.');break;}
+      t.helpers.push(x.id); save(); if(participants(t).length>=t.people)ui.partnerOpen=null;
+      toast(`${x.name} er lagt til. ${t.carrots} 🥕 deles nå på ${participants(t).length}.`);
+      if(inModal())refreshModal(); render(); break; }
+    case 'newProject': { const n=g('name'); if(!n)break; const np={id:uid(),name:n,festivalDate:rel(120),festivalEnd:rel(122),festivalTime:'18:00',areas:[{id:uid(),n:'Generelt',c:'#fff27a'}],info:'',tasks:[]};
+      S.projects.push(np);S.active=np.id;save();ui.gTab='prosjekt';closeModal();render();toast('«'+n+'» er opprettet'); break; }
+  }
+});
+function saveTask(fd,f){
+  const p=P();const g=k=>(fd.get(k)||'').toString().trim();
+  let t=f.dataset.id?task(f.dataset.id):null;const isNew=!t;
+  if(isNew){t={id:uid(),deps:[],mode:'open',leader:null,helpers:[],status:'open',reverseOf:null,reverseCreated:false,notes:[],doneDate:null};}
+  const deps=fd.getAll('deps').map(String);
+  if(!isNew&&deps.some(d=>dependsOn(d,t.id))){toast('Det ville gitt en sirkel av oppgaver som venter på hverandre');return;}
+  Object.assign(t,{title:g('title'),desc:g('desc'),area:g('area'),carrots:Math.max(1,+g('carrots')||1),people:Math.max(1,+g('people')||1),
+    start:g('date'),deadline:g('date'),deps,public:fd.has('public'),reversible:fd.has('reversible'),reverseTitle:g('reverseTitle'),reverseInfo:g('reverseInfo'),alert:fd.has('alertOn')?(+g('alert')||7):0});
+  if(isNew)p.tasks.push(t);
+  const as=g('assign');
+  if(as&&t.status!=='done'&&!(t.mode==='assigned'&&t.leader===as))assign(t,as);
+  else if(!as&&t.mode==='assigned'&&t.status==='claimed')release(t);
+  save();closeModal();render();if(isNew&&!as)toast('Lappen er hengt opp 📌');
+}
+
+/* ---------- Drag and drop (mus og touch) ---------- */
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  const n=e.target.closest('[data-drag]');if(!n||e.button>0||inModal())return;
+  drag={el:n,id:n.dataset.drag,x:e.clientX,y:e.clientY,started:false,touch:e.pointerType==='touch',timer:null,ghost:null,hot:null};
+  if(drag.touch){drag.timer=setTimeout(()=>{if(drag&&!drag.started)startDrag(drag.x,drag.y);},280);}
+});
+function startDrag(x,y){
+  const r=drag.el.getBoundingClientRect();
+  drag.started=true;drag.ox=x-r.left;drag.oy=y-r.top;
+  const g=drag.el.cloneNode(true);g.classList.add('ghost');g.style.width=r.width+'px';g.removeAttribute('data-drag');g.removeAttribute('data-open');
+  document.body.appendChild(g);drag.ghost=g;drag.el.classList.add('dragging');document.body.classList.add('is-dragging');
+  if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
+  moveGhost(x,y);
+}
+function moveGhost(x,y){
+  drag.ghost.style.left=(x-drag.ox)+'px';drag.ghost.style.top=(y-drag.oy)+'px';
+  const el=document.elementFromPoint(x,y);const z=el&&el.closest('[data-drop]');
+  if(drag.hot&&drag.hot!==z)drag.hot.classList.remove('hot');
+  if(z)z.classList.add('hot');drag.hot=z;
+}
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  const dist=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);
+  if(!drag.started){
+    if(drag.touch){if(dist>10){clearTimeout(drag.timer);drag=null;}return;}
+    if(dist>7)startDrag(e.clientX,e.clientY);else return;
+  }
+  e.preventDefault();moveGhost(e.clientX,e.clientY);
+});
+document.addEventListener('touchmove',e=>{if(drag&&drag.started)e.preventDefault();},{passive:false});
+document.addEventListener('contextmenu',e=>{if(drag)e.preventDefault();});
+function endDrag(cancel){
+  if(!drag)return;clearTimeout(drag.timer);
+  if(drag.started){
+    const zone=drag.hot;drag.ghost.remove();drag.el.classList.remove('dragging');document.body.classList.remove('is-dragging');
+    if(zone)zone.classList.remove('hot');suppressClick=true;setTimeout(()=>suppressClick=false,50);
+    const id=drag.id;drag=null;
+    if(zone&&!cancel)handleDrop(zone.dataset.drop,id);
+  } else drag=null;
+}
+document.addEventListener('pointerup',()=>endDrag(false));
+document.addEventListener('pointercancel',()=>endDrag(true));
+
+function handleDrop(zone,id){
+  const t=task(id);if(!t)return;const m=me();
+  if(zone.startsWith('dep:')){makeDep(t,zone.slice(4));render();return;}
+  if(zone==='loose'){if(t.deps.length){t.deps=[];save();toast('«'+t.title+'» er løsnet');}render();return;}
+  if(zone.startsWith('assign:'))assign(t,zone.slice(7));
+  else if(zone==='col-open'){if(t.status==='done'){act('undone',{id:t.id});return;}else if(t.status==='claimed')release(t);}
+  else if(zone==='col-claimed'||zone==='take'){
+    if(t.status==='open')claim(t,m);
+    else if(canJoin(t,m))join(t,m);
+    else if(isIn(t,m))toast('Den har du allerede');
+    else if(t.status==='done')toast('Den er allerede høstet');
+    else toast('Den lappen er tatt');
+  }
+  else if(zone==='col-done'||zone==='finish'){
+    if(t.status==='open'&&isBlocked(t))toast(blockedMsg(t));
+    else if(t.status==='open')toast(m.role==='gartner'?'Noen må ta lappen først. Dra den til «I gang» eller til en person.':'Ta lappen først, så kan du høste den');
+    else if(isIn(t,m)||m.role==='gartner')complete(t);
+    else toast('Bare de som jobber med lappen kan markere den som ferdig');
+  }
+  render();
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(x=>x.remove());
+  const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=msg;document.body.appendChild(d);
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>d.remove(),3400);
+}
+
+/* ---------- Start ---------- */
+document.getElementById('brandLogo').innerHTML=logoSVG();
+window.addEventListener('hashchange',()=>{ui.view='uke';ui.day=null;ui.anchor=today();closeModal();handleScan();render();});
+mq.addEventListener('change',()=>{closeModal();render();});
+setInterval(tick,1000);
+setInterval(()=>{if(route()==='dashboard'&&!drag&&!inModal())render();},60000);
+handleScan();
+render();
+</script>
+</body>
+</html>
